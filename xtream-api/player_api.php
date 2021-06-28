@@ -2,11 +2,11 @@
 
 /************************************************************************************/
 /*																					*/
-/*				player_api.php [ IPTV-Tools Xtream API]								*/
+/*				player_api.php [ IPTV-Tools Xtream API ]							*/
 /*																					*/
 /*				Author	: Ernst Reidinga											*/
-/*				Date 	: 17/06/2021												*/
-/*				Version	: 1.0														*/
+/*				Date 	: 27/06/2021												*/
+/*				Version	: 1.0 (Compat XC V2.0)										*/
 /*																					*/
 /*              Stream type / Category type:                                        */
 /*               1 - Live                                                           */
@@ -57,7 +57,7 @@ include_once SITE_ROOT . '/common/db_sql.php';
 /*				Create SQL Connection											 	*/
 /*																					*/
 /************************************************************************************/
-$sql = $sql = new dbSQL(
+$sql = new dbSQL(
 	SQL['app']['server'],
 	SQL['app']['username'],
 	SQL['app']['password'],
@@ -191,37 +191,27 @@ function get_categories ($playlist, $group_type, $full = false) {
     global $sql;
     global $offset;
     global $limit;
-    $user_id     = $playlist['user_id'];
-    $playlist_id = $playlist['id'];
-    $fields      = $full === true ? "*, id AS category_id, group_name AS category_name, '1' AS parent_id" : "id AS category_id, group_name AS category_name, '1' AS parent_id";
-    return $sql->sql_select_array_query("SELECT {$fields} FROM `groups` WHERE `user_id` = '{$user_id}' AND `playlist_id` = '{$playlist_id}' AND `group_type` = '{$group_type}' LIMIT {$offset}, {$limit}");
+    $fields = $full === true ? "*, id AS category_id, group_name AS category_name, '1' AS parent_id" : "id AS category_id, group_name AS category_name, '1' AS parent_id";
+    return $sql->sql_select_array_query("SELECT {$fields} FROM `groups` WHERE `user_id` = '{$playlist['user_id']}' AND `playlist_id` = '{$playlist['id']}' AND `group_type` = '{$group_type}' AND `group_is_hidden` = 0 ORDER BY group_order ASC LIMIT {$offset}, {$limit}");
 }
 
 function get_live_streams ($playlist, $group) {
     global $sql;
     global $offset;
     global $limit;
-    $user_id     = $playlist['user_id'];
-    $playlist_id = $playlist['id'];
-    $group_id    = $group['id'];
-    return $sql->sql_select_array_query("SELECT *, UNIX_TIMESTAMP(created_at) as added FROM `live` WHERE `user_id` = '{$user_id}' AND `playlist_id` = '{$playlist_id}' AND `group_id` = '{$group_id}' LIMIT {$offset}, {$limit}");
+    return $sql->sql_select_array_query("SELECT *, UNIX_TIMESTAMP(created_at) as added FROM `live` WHERE `user_id` = '{$playlist['user_id']}' AND `playlist_id` = '{$playlist['id']}' AND `group_id` = '{$group['id']}' AND `stream_is_hidden` = 0 AND `sync_is_removed` = 0 ORDER BY stream_order ASC LIMIT {$offset}, {$limit}");
 }
 
 function get_movie_streams ($playlist, $group) {
     global $sql;
     global $offset;
     global $limit;
-    $user_id     = $playlist['user_id'];
-    $playlist_id = $playlist['id'];
-    $group_id    = $group['id'];
-    return $sql->sql_select_array_query("SELECT *, UNIX_TIMESTAMP(created_at) AS added FROM `movie` WHERE `user_id` = '{$user_id}' AND `playlist_id` = '{$playlist_id}' AND `group_id` = '{$group_id}' AND tmdb IS NOT NULL AND tmdb <> '' LIMIT {$offset}, {$limit}");
+    return $sql->sql_select_array_query("SELECT *, UNIX_TIMESTAMP(created_at) AS added FROM `movie` WHERE `user_id` = '{$playlist['user_id']}' AND `playlist_id` = '{$playlist['id']}' AND `group_id` = '{$group['id']}' AND tmdb IS NOT NULL AND tmdb <> '' AND `stream_is_hidden` = 0 AND `sync_is_removed` = 0 ORDER BY stream_order ASC LIMIT {$offset}, {$limit}");
 }
 
 function get_movie ($playlist, $movie_id) {
     global $sql;
-    $user_id     = $playlist['user_id'];
-    $playlist_id = $playlist['id'];
-    $result = $sql->sql_select_array_query("SELECT *, UNIX_TIMESTAMP(created_at) AS added FROM `movie` WHERE `user_id` = '{$user_id}' AND `playlist_id` = '{$playlist_id}' AND `id` = '{$movie_id}'");
+    $result = $sql->sql_select_array_query("SELECT *, UNIX_TIMESTAMP(created_at) AS added FROM `movie` WHERE `user_id` = '{$playlist['user_id']}' AND `playlist_id` = '{$playlist['id']}' AND `id` = '{$movie_id}'");
     return !empty($result) ? $result[0] : null;
 }
 
@@ -229,25 +219,18 @@ function get_series ($playlist, $group) {
     global $sql;
     global $offset;
     global $limit;
-    $user_id     = $playlist['user_id'];
-    $playlist_id = $playlist['id'];
-    $group_id    = $group['id'];
-    return $sql->sql_select_array_query("SELECT DISTINCT e.serie_name, e.source_serie_id as `serie_id`, e.stream_order as `order`, s.tmdb, s.credits, s.videos FROM `episodes` e, `series_tmdb` s WHERE s.user_id = e.user_id AND s.playlist_id = e.playlist_id AND s.tmdb_id = e.tmdb_id AND e.user_id = '{$user_id}' AND e.playlist_id = '{$playlist_id}' and group_id = '{$group_id}' LIMIT {$offset}, {$limit}");
+    return $sql->sql_select_array_query("SELECT DISTINCT e.serie_name, e.source_serie_id as `serie_id`, e.stream_order as `order`, s.tmdb, s.credits, s.videos FROM `episodes` e, `series_tmdb` s WHERE s.user_id = e.user_id AND s.playlist_id = e.playlist_id AND s.tmdb_id = e.tmdb_id AND e.user_id = '{$playlist['user_id']}' AND e.playlist_id = '{$playlist['id']}' and group_id = '{$group['id']}' LIMIT {$offset}, {$limit}");
 }
 
 function get_serie ($playlist, $serie_id) {
     global $sql;
-    $user_id      = $playlist['user_id'];
-    $playlist_id  = $playlist['id'];
-    $result       = $sql->sql_select_array_query("SELECT DISTINCT e.serie_name, e.group_id, e.source_serie_id as `serie_id`, e.stream_order as `order`, s.tmdb, s.credits, s.videos FROM `episodes` e, `series_tmdb` s WHERE s.user_id = e.user_id AND s.playlist_id = e.playlist_id AND s.tmdb_id = e.tmdb_id AND e.user_id = '{$user_id}' AND e.playlist_id = '{$playlist_id}' and e.source_serie_id = '{$serie_id}'");
+    $result = $sql->sql_select_array_query("SELECT DISTINCT e.serie_name, e.group_id, e.source_serie_id as `serie_id`, e.stream_order as `order`, s.tmdb, s.credits, s.videos FROM `episodes` e, `series_tmdb` s WHERE s.user_id = e.user_id AND s.playlist_id = e.playlist_id AND s.tmdb_id = e.tmdb_id AND e.user_id = '{$playlist['user_id']}' AND e.playlist_id = '{$playlist['id']}' and e.source_serie_id = '{$serie_id}'");
     return count($result) >= 1 ? $result[0] : [];
 }
 
 function get_serie_episodes ($playlist, $serie_id) {
     global $sql;
-    $user_id      = $playlist['user_id'];
-    $playlist_id  = $playlist['id'];
-    return $sql->sql_select_array_query("SELECT *, UNIX_TIMESTAMP(created_at) as added FROM `episodes` WHERE user_id = '{$user_id}' AND playlist_id = '{$playlist_id}' and source_serie_id = '{$serie_id}'");
+    return $sql->sql_select_array_query("SELECT *, UNIX_TIMESTAMP(created_at) as added FROM `episodes` WHERE `user_id` = '{$playlist['user_id']}' AND playlist_id = '{$playlist['id']}' and source_serie_id = '{$serie_id}' AND `stream_is_hidden` = 0 AND `sync_is_removed` = 0 ORDER BY stream_order ASC");
 }
 
 function get_cast ($credits) {
@@ -377,6 +360,40 @@ function get_episodes ($episodes) {
     return $result;
 }
 
+function format_epg ($channel, $epg, $short) {
+    $result = [];
+    foreach ($epg as $programme) {
+        if ($short === true) {
+            $result[] = [
+                'epg_id'          => $channel['epg_id'],
+                'title'           => base64_encode($programme['title']),
+                'lang'            => $channel['lang'],
+                'start'           => $programme['start'],
+                'end'             => $programme['stop'],
+                'description'     => base64_encode($programme['description']),
+                'channel_id'      => $channel['stream_tvg_id'],
+                'start_timestamp' => $programme['start_timestamp'],
+                'stop_timestamp'  => $programme['stop_timestamp']
+            ];
+        } else {
+            $result[] = [
+                'epg_id'          => $channel['epg_id'],
+                'title'           => base64_encode($programme['title']),
+                'lang'            => $channel['lang'],
+                'start'           => $programme['start'],
+                'end'             => $programme['stop'],
+                'description'     => base64_encode($programme['description']),
+                'channel_id'      => $channel['stream_tvg_id'],
+                'start_timestamp' => $programme['start_timestamp'],
+                'stop_timestamp'  => $programme['stop_timestamp'],
+                'has_archive'     => $channel['source_tv_archive'] == 1 && !empty($channel['source_tv_archive_duration']) && time() > $programme['stop_timestamp'] && strtotime("-{$channel['source_tv_archive_duration']} days") <= $programme['stop_timestamp'] ? 1 : 0,
+                'now_playing'     => $programme['start_timestamp'] <= time() && $programme['stop_timestamp'] >= time() ? 1 : 0
+            ];
+        }
+    }
+    return $result;
+}
+
 $parameters   = parse_parameters();
 $playlist     = get_playlist($parameters['username'], $parameters['password']);
 $subscription = get_subscription($playlist['user_id']);
@@ -411,9 +428,10 @@ if (!empty($subscription) && !in_array($subscription['playlist_type'], [0, 1])) 
 /*																					*/
 /************************************************************************************/
 if (!empty($playlist) && boolval($playlist['enabled']) && !empty($subscription)) {
-    $response = [];
-    $offset   = !empty($parameters['offset']) ? $parameters['offset'] : 0;
-    $limit    = !empty($parameters['limit'])  ? $parameters['limit']  : 1000000;
+    $response  = [];
+    $offset    = !empty($parameters['offset']) ? $parameters['offset'] : 0;
+    $limit     = !empty($parameters['limit'])  ? $parameters['limit']  : 1000000;
+    $timeshift = intval($playlist['epg_offset']) * 3600;
 
     switch (array_search($parameters['action'], $actions)) {
 
@@ -512,7 +530,19 @@ if (!empty($playlist) && boolval($playlist['enabled']) && !empty($subscription))
 
         // Short EPG
         case 205:
-            $response = [];
+            $response = ['epg_listings' => []];
+            if (!empty($parameters['stream_id'])) {
+                $channel = $sql->sql_select_array_query("SELECT l.stream_tvg_id, (SELECT id FROM `xmltv_stations` WHERE tvg_id = l.stream_tvg_id) as 'epg_id', (SELECT lang FROM `xmltv_stations` WHERE tvg_id = l.stream_tvg_id) as 'lang' FROM `live` l WHERE id = '{$parameters['stream_id']}' AND user_id = '{$playlist['user_id']}' AND playlist_id = '{$playlist['id']}' AND stream_tvg_id IS NOT NULL");
+                $limit   = !empty($parameters['limit'])  ? $parameters['limit']  : 4;
+                if (count($channel) > 0) {
+                    $channel = $channel[0];
+                    $d       = gmdate("Y-m-d H:i:s");
+                    $epg     = $sql->sql_select_array_query("SELECT DATE_ADD(p.start, INTERVAL p.offset + {$timeshift} second) as 'start', UNIX_TIMESTAMP(DATE_ADD(p.start, INTERVAL p.offset + {$timeshift} second)) as 'start_timestamp', DATE_ADD(p.stop, INTERVAL p.offset + {$timeshift} second) as 'stop', UNIX_TIMESTAMP(DATE_ADD(p.stop, INTERVAL p.offset + {$timeshift} second)) as 'stop_timestamp', p.title, p.description FROM `xmltv_programmes` p WHERE tvg_id = '{$channel['stream_tvg_id']}' AND ('{$d}' BETWEEN `start` AND `stop` OR `start` >= '{$d}') ORDER BY `start` LIMIT {$limit}");
+                    if (count($epg) > 0) {
+                        $response['epg_listings'] = format_epg($channel, $epg, true);
+                    }
+                }
+            }
             break;
 
         // Series Categories
@@ -522,7 +552,17 @@ if (!empty($playlist) && boolval($playlist['enabled']) && !empty($subscription))
 
         // Simple Data Table
         case 207:
-            $response = [];
+            $response = ['epg_listings' => []];
+            if (!empty($parameters['stream_id'])) {
+                $channel = $sql->sql_select_array_query("SELECT l.stream_tvg_id, l.source_tv_archive, l.source_tv_archive_duration, (SELECT id FROM `xmltv_stations` WHERE tvg_id = l.stream_tvg_id) as 'epg_id', (SELECT lang FROM `xmltv_stations` WHERE tvg_id = l.stream_tvg_id) as 'lang' FROM `live` l WHERE id = '{$parameters['stream_id']}' AND user_id = '{$playlist['user_id']}' AND playlist_id = '{$playlist['id']}' AND stream_tvg_id IS NOT NULL");
+                if (count($channel) > 0) {
+                    $channel = $channel[0];
+                    $epg     = $sql->sql_select_array_query("SELECT DATE_ADD(p.start, INTERVAL p.offset + {$timeshift} second) as 'start', UNIX_TIMESTAMP(DATE_ADD(p.start, INTERVAL p.offset + {$timeshift} second)) as 'start_timestamp', DATE_ADD(p.stop, INTERVAL p.offset + {$timeshift} second) as 'stop', UNIX_TIMESTAMP(DATE_ADD(p.stop, INTERVAL p.offset + {$timeshift} second)) as 'stop_timestamp', p.title, p.description FROM `xmltv_programmes` p WHERE tvg_id = '{$channel['stream_tvg_id']}' ORDER BY `start`");
+                    if (count($epg) > 0) {
+                        $response['epg_listings'] = format_epg($channel, $epg, false);
+                    }
+                }
+            }
             break;
 
         // Series

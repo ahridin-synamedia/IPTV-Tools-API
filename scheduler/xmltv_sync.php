@@ -201,6 +201,10 @@ foreach ($queries as $quer) {
             // Process xml file
             if (isset($xml) && !empty($xml)) {
 
+                // Delete all future programmes for this source
+                $d = date('Y-m-d H:i:00');
+                $sql->sql_query("DELETE FROM `xmltv_programmes` WHERE xmltv_source_id = '{$source_id}' AND start >= '{$d}'");
+
                 // Loop through channels and insert/update
                 foreach ($xml->channel as $channel) {
                     $tvg_id   = $sql->clean_string($channel['id']);
