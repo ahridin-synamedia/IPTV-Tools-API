@@ -192,7 +192,10 @@ class toolBox {
 	function youtube_page ($video_id) {
 		$ua = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.87 Safari/537.36';
         $str = $this->curl_http_get("https://youtube.com/watch?v={$video_id}", $ua);
-        echo $str;
+        if (preg_match_all('/(?<=>var ytInitialPlayerResponse =)(.*)(?=;var meta)/i', $str, $match)) {
+			return $match && count($match) > 0 ? json_decode($match[0][0]) : [];
+		}
+		return [];
 	}
 	
 	// Get Vimeo configuration
@@ -750,6 +753,59 @@ class toolBox {
 	function user_playlists ($user_id) {
 		global $sql;
 		return $sql->sql_select_array_query("SELECT *, (SELECT count(*) FROM live WHERE user_id = '{$user_id}' AND playlist_id = p.id) as 'live', (SELECT count(*) FROM movie WHERE user_id = '{$user_id}' AND playlist_id = p.id) as 'movies', (SELECT count(*) FROM episodes WHERE user_id = '{$user_id}' AND playlist_id = p.id) as 'series', (SELECT count(*) FROM live WHERE user_id = '{$user_id}' AND playlist_id = p.id AND sync_is_new = 1) as 'live-new', (SELECT count(*) FROM movie WHERE user_id = '{$user_id}' AND playlist_id = p.id AND sync_is_new = 1) as 'movie-new', (SELECT count(*) FROM episodes WHERE user_id = '{$user_id}' AND playlist_id = p.id AND sync_is_new = 1) as 'series-new', (SELECT count(*) FROM live WHERE user_id = '{$user_id}' AND playlist_id = p.id AND sync_is_removed = 1) as 'live-removed', (SELECT count(*) FROM movie WHERE user_id = '{$user_id}' AND playlist_id = p.id AND sync_is_removed = 1) as 'movie-removed', (SELECT count(*) FROM episodes WHERE user_id = '{$user_id}' AND playlist_id = p.id AND sync_is_removed = 1) as 'series-removed' FROM `playlist` p WHERE user_id = '{$user_id}'");
+	}
+
+	// Get SmartIPTV EPG Countries
+	function siptv_countries () {
+		$result = [];
+		$html   = $this->curl_http_get("https://siptv.eu/codes/", $_SERVER['HTTP_USER_AGENT']);
+		// Substring
+		$start = strpos($html, "<ul>");
+		$stop  = strpos($html, "</ul>");
+		$html  = substr($html, $start, $stop - $start);
+		// Extract countries
+		if (preg_match_all('/(?<=<li id=")(.*?)(?=">)/i', $html, $values) && preg_match_all('/(?<=">)(.*?)(?=<\/)/i', $html, $texts)) {
+			foreach ($values[0] as $index => $value) {
+				$result[] = [
+					'value' => $value,
+					'text'  => $texts[0][$index]
+				];
+			}
+		}
+		return $result;
+	}
+
+	// Get SmartIPTV EPG Codes for country
+	function siptv_epg_codes ($country) {
+		$result = [];
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, "https://siptv.eu/codes/get_list.php");
+		curl_setopt($ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($ch, CURLOPT_POST, 1);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, "source={$country}");
+		curl_setopt($ch, CURLOPT_HTTPHEADER, [
+			"cookie:origin=valid",
+			"origin:https://siptv.eu",
+			"referer:https://siptv.eu/codes/",
+			"x-requested-with:XMLHttpRequest",
+			"content-type:application/x-www-form-urlencoded; charset=UTF-8"
+		]);
+		$html = curl_exec($ch);
+		curl_close($ch);
+		// Extract countries
+		if (preg_match_all('/(?<=<td align="center">)(.*?)(?=<\/td>)/i', $html, $texts) && preg_match_all('/(?<=<td align="center" style="padding: 0 10px;">)(.*?)(?=<\/td>)/i', $html, $values)) {
+			foreach ($values[0] as $index => $value) {
+				$result[] = [
+					'tvg_id'   => $value,
+					'tvg_name' => $texts[0][$index]
+				];
+			}
+		}
+		return $result;
 	}
 
 }

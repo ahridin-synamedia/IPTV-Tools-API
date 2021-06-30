@@ -692,9 +692,9 @@ switch ($router->request_method()) {
 						break;
 						
 					case 'YOUTUBE-VIDEO':
-						$toolbox->youtube_page(
+						$router->json_response($toolbox->youtube_page(
 							$p['video_id']
-						);
+						));
 						break;
 
 					case 'VIMEO-VIDEO':
@@ -1469,6 +1469,16 @@ switch ($router->request_method()) {
 
 					case 'TV-GUIDE':
 						$router->json_response($toolbox->tvguide_ids(
+							$router->segment(++$segment)
+						));
+						break;
+
+					case 'SMART-IPTV-COUNTRIES':
+						$router->json_response($toolbox->siptv_countries());
+						break;
+
+					case 'SMART-IPTV':
+						$router->json_response($toolbox->siptv_epg_codes(
 							$router->segment(++$segment)
 						));
 						break;

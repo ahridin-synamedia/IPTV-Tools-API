@@ -138,7 +138,7 @@ if (isset($playlist['ip_protection']) && boolval($playlist['ip_protection']) ===
 /*				Playlist Type Check		 											*/
 /*																					*/
 /************************************************************************************/
-if (!empty($subscription) && !in_array($subscription['playlist_type'], [0, 1, 2, 3])) {
+if (!empty($subscription) && !in_array($subscription['playlist_type'], [0, 2])) {
     http_response_code(401);
     header('Status: 401 Unauthorized');
     exit;
