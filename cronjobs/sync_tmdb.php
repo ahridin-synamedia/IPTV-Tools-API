@@ -46,6 +46,34 @@ date_default_timezone_set('Europe/Amsterdam');
 /*				Extract Functions                                				    */
 /*																					*/
 /************************************************************************************/
+function extract_between ($text, $left, $right) {
+    $r = [];
+    $e = 0;
+    $p = 0;
+    do {
+        $p = strpos($text, $left, $e);
+        $n = $p +1;
+        $e = strpos($text, $right, $n);
+        if ($p !== false && $e !== false) {
+            $r[] = substr($text, $p +1, ($e - $p) -1);
+        }
+        $e++;
+    } while ($p !== false && $e !== false);
+    return $r;
+}
+
+function extract_tags ($text) {
+    $r1 = extract_between($text, '[', ']');
+    $r2 = extract_between($text, '(', ')');
+    $r3 = extract_between($text, '|', '|');
+    return array_merge($r1, $r2, $r3);
+}
+
+function string_is_year ($str) {
+    $year = intval($str);
+    return $year >= 1900 && $year <= intval(date("Y"));
+}
+
 function extract_year ($title) {
     if (preg_match("(19\d{2}|20(?:0\d|1[0-9]|2[0-9]))", $title, $n)) {
         return $n[0];
@@ -60,9 +88,24 @@ function extract_movie_info ($title) {
             'year'	=> $n[1]
         ];
     } else {
+        $tags = extract_tags($title);
+        $name = $title;
+        $year = "";
+        foreach ($tags as $tag) {
+            if (string_is_year($tag)) {
+                $year = $tag;
+            }
+            $name = str_replace('[' . $tag . ']', '', $name);
+            $name = str_replace('(' . $tag . ')', '', $name);
+            $name = str_replace('|' . $tag . '|', '', $name);
+            $name = trim($name);
+        }
+        if (empty($year)) {
+            $year = extract_year($title);
+        }
         return [
-            'name'	=> $title,
-            'year'	=> extract_year($title)
+            'name'	=> $name,
+            'year'	=> $year
         ];
     }
 }

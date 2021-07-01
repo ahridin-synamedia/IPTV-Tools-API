@@ -38,6 +38,59 @@ date_default_timezone_set('Europe/Amsterdam');
 
 /************************************************************************************/
 /*																					*/
+/*				Extract Functions                                				    */
+/*																					*/
+/************************************************************************************/
+function extract_between ($text, $left, $right) {
+    $r = [];
+    $e = 0;
+    $p = 0;
+    do {
+        $p = strpos($text, $left, $e);
+        $n = $p +1;
+        $e = strpos($text, $right, $n);
+        if ($p !== false && $e !== false) {
+            $r[] = substr($text, $p +1, ($e - $p) -1);
+        }
+        $e++;
+    } while ($p !== false && $e !== false);
+    return $r;
+}
+
+function extract_tags ($text) {
+    $r1 = extract_between($text, '[', ']');
+    $r2 = extract_between($text, '(', ')');
+    $r3 = extract_between($text, '|', '|');
+    return array_merge($r1, $r2, $r3);
+}
+
+function str_ends_with_ci ($haystack, $needle) {
+    $length = strlen($needle);
+    return $length > 0 ? strtolower(substr($haystack, -$length)) === strtolower($needle) : true;
+}
+
+function extract_serie_name ($title) {
+    $tags = extract_tags($title);
+    $name = $title;
+    // Remove tags (NL), |NL|, [NL] ...
+    foreach ($tags as $tag) {
+        $name = str_replace('[' . $tag . ']', '', $name);
+        $name = str_replace('(' . $tag . ')', '', $name);
+        $name = str_replace('|' . $tag . '|', '', $name);
+    }
+    // Remove sources
+    $sources = [' VIDEOLAND', ' HBO', ' NETFLIX', ' NF', ' DISNEY+', ' DISNEY', ' HULU'];
+    foreach ($sources as $source) {
+        if (str_ends_with_ci($name, $source)) {
+            $name = str_ireplace($source, '', $name);
+        }
+    }
+    // Return cleaned string
+    return trim($name);
+}
+
+/************************************************************************************/
+/*																					*/
 /*				Playlist                                    					    */
 /*																					*/
 /************************************************************************************/
@@ -96,15 +149,15 @@ function series_episodes ($baseurl, $series_id) {
 /*																					*/
 /************************************************************************************/
 $live_ids = implode(',', $sync_live);
-$sql->sql_query("DELETE FROM `groups` WHERE `source_group_type` = 1 AND group_is_custom = 0 AND `source_category_id` NOT IN ({$live_ids})");
+$sql->sql_query("DELETE FROM `groups` WHERE user_id = '{$user_id}' AND playlist_id = '{$playlist_id}' AND `source_group_type` = 1 AND group_is_custom = 0 AND `source_category_id` NOT IN ({$live_ids})");
 $sql->sql_query("DELETE FROM `live` WHERE user_id = '{$user_id}' AND playlist_id = '{$playlist_id}' AND stream_is_custom = 0 AND group_id NOT IN (select id FROM groups)");
 
 $movie_ids = implode(',', $sync_movies);
-$sql->sql_query("DELETE FROM `groups` WHERE `source_group_type` = 2 AND group_is_custom = 0 AND `source_category_id` NOT IN ({$movie_ids})");
+$sql->sql_query("DELETE FROM `groups` WHERE user_id = '{$user_id}' AND playlist_id = '{$playlist_id}' AND `source_group_type` = 2 AND group_is_custom = 0 AND `source_category_id` NOT IN ({$movie_ids})");
 $sql->sql_query("DELETE FROM `movie` WHERE user_id = '{$user_id}' AND playlist_id = '{$playlist_id}' AND stream_is_custom = 0 AND group_id NOT IN (select id FROM groups)");
 
 $series_ids = implode(',', $sync_series);
-$sql->sql_query("DELETE FROM `groups` WHERE `source_group_type` = 3 AND group_is_custom = 0 AND `source_category_id` NOT IN ({$series_ids})");
+$sql->sql_query("DELETE FROM `groups` WHERE user_id = '{$user_id}' AND playlist_id = '{$playlist_id}' AND `source_group_type` = 3 AND group_is_custom = 0 AND `source_category_id` NOT IN ({$series_ids})");
 $sql->sql_query("DELETE FROM `episodes` WHERE user_id = '{$user_id}' AND playlist_id = '{$playlist_id}' AND stream_is_custom = 0 AND group_id NOT IN (select id FROM groups)");
 
 /************************************************************************************/
@@ -281,7 +334,7 @@ foreach ($series as $serie) {
                 'stream_tvg_name'            => $episode['title'],
                 'stream_tvg_logo'            => $serie['cover'],
                 'stream_order'               => $serie['num'],
-                'serie_name'                 => $serie['name'],
+                'serie_name'                 => extract_serie_name($serie['name']),
                 'serie_season'               => $episode['season'],
                 'serie_episode'              => $episode['episode_num'],
                 'serie_trailer'              => $serie['youtube_trailer'],

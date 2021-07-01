@@ -106,7 +106,7 @@ class dbSQL {
 			if (!is_string($key) && !is_integer($key)) {
 				continue;
 			}
-			if (is_string($value) && strtotime($value)) {
+			if (is_string($value) && strlen($value) > 6 && strtotime($value)) {
 				$value = date('Y-m-d H:i:s', strtotime($value));
 			}
 			$_key    = $this->clean_string($key);
@@ -115,9 +115,8 @@ class dbSQL {
 				$_value  = $this->clean_string(serialize($value));
 				$values .= empty($values) ? "'{$_value}'" : ", '{$_value}'";
 			} elseif (is_null($value)) {
-				$str   .= empty($str) ? "`{$_key}` = NULL" : ", `{$_key}` = NULL";
+				$values .= empty($values) ? "`{$_key}` = NULL" : ", `{$_key}` = NULL";
 			} else {
-				
 				$_value  = $this->clean_string($value);
 				$values .= empty($values) ? "'{$_value}'" : ", '{$_value}'";
 			}
@@ -138,7 +137,7 @@ class dbSQL {
 			if (strtolower($key) === "sync_is_new") {
 				continue;
 			}
-			if (is_string($value) && strtotime($value)) {
+			if (is_string($value) && strlen($value) > 6 && strtotime($value)) {
 				$value = date('Y-m-d H:i:s', strtotime($value));
 			}
 			$_key = $this->clean_string($key);
