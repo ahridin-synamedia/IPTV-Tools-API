@@ -172,11 +172,16 @@ if ($router->request_method() === 'GET') {
             $stream_type = 3;
             break;
 
-        // Live (HLS)
+        // Live (HLS / MPEG-TS)
         case 'LIVE':
             $playlist  = get_playlist($router->segment(++$segment), $router->segment(++$segment));
             $stream_id = pathinfo($router->segment(++$segment), PATHINFO_FILENAME);
-            $stream_type = 1;
+            $extension = pathinfo($router->segment($segment), PATHINFO_EXTENSION);
+            if (strtolower($extension) == 'ts') {
+                $stream_type = 1;
+            } else {
+                $stream_type = 4;
+            }
             break;
 
         // Catch-Up
@@ -192,7 +197,7 @@ if ($router->request_method() === 'GET') {
         default:
             $playlist  = get_playlist($router->segment($segment), $router->segment(++$segment));
             $stream_id = pathinfo($router->segment(++$segment), PATHINFO_FILENAME);
-            $stream_type = 4;
+            $stream_type = 1;
             break;
 
     }

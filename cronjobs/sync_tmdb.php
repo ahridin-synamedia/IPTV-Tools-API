@@ -123,7 +123,7 @@ function get_movie_tmdb_id ($title, $year) {
     $url = "https://api.themoviedb.org/3/search/movie?api_key={$tmdb_api_key}&query={$_title}&year={$year}";
     $results = curl_http_get($url)['results'];
     foreach ($results as $movies) {
-        if (isset($movies['name']) && isset($movies['original_name']) && strcasecmp($title, $movies['name']) === 0 || strcasecmp($title, $movies['original_name']) === 0) {
+        if ((isset($movies['name']) && strcasecmp($title, $movies['name']) === 0) || (isset($movies['original_name']) && strcasecmp($title, $movies['original_name']) === 0)) {
             return $series['id'];
         }
     }

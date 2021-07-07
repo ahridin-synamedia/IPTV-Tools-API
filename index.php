@@ -46,6 +46,7 @@ include_once SITE_ROOT . '/common/movie.php';
 include_once SITE_ROOT . '/common/serie.php';
 include_once SITE_ROOT . '/common/editor.php';
 include_once SITE_ROOT . '/common/xdpro.php';
+include_once SITE_ROOT . '/common/siptv.php';
 
 /************************************************************************************/
 /*																					*/
@@ -75,6 +76,7 @@ $movie		    = new movie();
 $serie		    = new serie();
 $editor		    = new editor();
 $xdpro		    = new xdpro();
+$siptv          = new siptv();
 
 /************************************************************************************/
 /*																					*/
@@ -756,6 +758,45 @@ switch ($router->request_method()) {
 
 				}
 				break;
+
+			/************************************/
+			/*									*/
+			/*			   	SIPTV	    		*/
+			/*									*/
+			/************************************/
+			case 'SIPTV':
+				$token = $user->decode_token($router->getJWT());
+
+				// Check if token is valid
+				if ($token['success'] === false) {
+					$router->json_response($token['message'], 401);
+					exit();
+				} else {
+					$token = $token['payload'];
+				}
+				switch ($router->segment(++$segment, true)) {
+
+					case 'PROFILE':
+						$router->json_response($siptv->add_profile(
+							$token->id
+						));
+						break;
+
+					case 'DELETE-PLAYLIST':
+						$router->json_response($siptv->delete_playlist(
+							urlencode($p['mac'])
+						));
+						break;
+
+					case 'UPLOAD-PLAYLIST':
+						$router->json_response($siptv->upload_playlist(
+							$token->id,
+							$p
+						));
+						break;
+
+				}
+				break;
 			
 			/* Other routes are invalid */
 			default: $router->invalid_route(); break;
@@ -887,6 +928,25 @@ switch ($router->request_method()) {
 						$router->json_response($xdpro->delete_downloads(
 							$token->id,
 							intval($router->segment(++$segment)) === 1
+						));
+						break;
+
+				}
+				break;
+
+			/************************************/
+			/*									*/
+			/*			    SIPTV	    		*/
+			/*									*/
+			/************************************/
+			case 'SIPTV':
+				switch ($router->segment(++$segment, true)) {
+
+					case 'PROFILE':
+						$router->json_response($siptv->update_profile(
+							$token->id,
+							$router->segment(++$segment),
+							$p
 						));
 						break;
 
@@ -1540,6 +1600,23 @@ switch ($router->request_method()) {
 
 			/************************************/
 			/*									*/
+			/*			    SIPTV		 		*/
+			/*									*/
+			/************************************/
+			case 'SIPTV':
+				switch ($router->segment(++$segment, true)) {
+
+					case 'PROFILES':
+						$router->json_response($siptv->get_profiles(
+							$token->id
+						));
+						break;
+
+				}
+				break;
+
+			/************************************/
+			/*									*/
 			/*			    TMDB		 		*/
 			/*									*/
 			/************************************/
@@ -1685,7 +1762,23 @@ switch ($router->request_method()) {
 				}
 				break;
 
+			/************************************/
+			/*									*/
+			/*			 	SIPTV				*/
+			/*									*/
+			/************************************/
+			case 'SIPTV':
+				switch ($router->segment(++$segment, true)) {
 
+					case 'PROFILE':
+						$router->json_response($siptv->delete_profile(
+							$token->id,
+							$router->segment(++$segment)
+						));
+						break;
+
+				}
+				break;
 				
 
 			/* Other routes are invalid */

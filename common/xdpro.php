@@ -26,7 +26,7 @@ class xdpro {
     // Add new XD-Pro instance
     function add_instance ($user_id) {
         global $sql;
-        if ($sql->sql_insert('xdpro', ['user_id' => $user_id])) {
+        if ($sql->sql_insert('xdpro', ['user_id' => $user_id, 'api_key' => md5(time() . "XD-PRO")])) {
             return $sql->last_insert_id();
         } else {
             return $sql->sql_last_error();
