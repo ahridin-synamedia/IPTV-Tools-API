@@ -95,69 +95,72 @@ class user {
         ]);
     }
 
-    // Forgot
-    function forgot ($username, $email, $ignore = false) {
+    // Reset
+    function reset ($username, $email) {
         global $sql;
-        // Find profile with user_id that belongs to the username
-        $res = $sql->sql_select_array_query("SELECT id FROM `user` WHERE username = '{$username}' AND status = 1");
-        if (count($res) >= 1) {
-            // Get profile for user_id
-            $user_id = $res[0]['id'];
-            $res = $sql->sql_select_array_query("SELECT * FROM `profile` WHERE user_id = '{$user_id}'");
-            // If we need to compare the email
-            if ((!$ignore && count($res) >= 1 && strcasecmp($res['email'], $email) === 0) || ($ignore === true)) {
-                // Update the user status to 5 (Waiting for new password)
-                $sql->sql_update('user', [
-                    'status' => 5
-                ], [
-                    'id' => $user_id
-                ]);
-                // Create new record in forgot with random code and expiry of 12hrs
-                $code = bin2hex(random_bytes(20));
-                $sql->sql_insert('forgot', [
-                    'user_id' => $user_id,
-                    'code'    => $code,
-                    'expiry'  => date('Y-m-d H:i:s',strtotime('+12 hour'))
-                ]);
-                // Send an email to the user with the code..
+        $user = $sql->sql_select_array_query("SELECT id FROM `user` WHERE BINARY username = '{$username}' AND email = '{$email}' LIMIT 1");
+        if (count($user) === 1) {
+            $data     = '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcefghijklmnopqrstuvwxyz*+-';
+            $user_id  = $user[0]['id'];
+            $password = substr(str_shuffle($data), 0, 8);
+            if ($sql->sql_update('user', [
+                'password' => hash('sha512', $password),
+            ], [
+                'id' => $user_id
+            ])) {
+                $this->send_email(
+                    EMAIL['email'], 
+                    $email, 
+                    'Your new temporary password.', 
+                    $this->reset_password_body($password)
+                );
                 return true;
             }
         }
         return false;
     }
 
-    // Reset
-    function reset ($username, $code, $password) {
+    // Register
+    function register ($username, $password, $email) {
         global $sql;
-        $user = $sql->sql_select_array_query("SELECT id FROM `user` WHERE username = '{$username}' AND status = 1");
-        if (count($user) >= 1) {
-            $user_id = $user[0]['id'];
-            // Find row with user_id and code and expiry below now
-            $res = $sql->sql_select_array_query("SELECT * FROM `forgot` WHERE user_id = '{$user_id}' AND code = '{$code}' AND expiry >= TIMESTAMP(NOW());");
-            // if found -> delete the row
-            if (count($res) >= 1) {
-                $sql->sql_delete('forgot', [
-                    'user_id' => $user_id
-                ]);
-                return $sql->sql_update('user', [
-                    'password' => hash('sha512', $password),
-                ], [
-                    'user_id' => $user_id
-                ]);
+        if ($this->available($username)) {
+            // Create new user
+            if ($sql->sql_insert('user', [
+                'username' => $username,
+                'password' => hash('sha512', $password),
+                'email'    => $email,
+                'status'   => 1
+            ])) {
+                $id = $sql->last_insert_id();
+                $code = md5($username . time() . $email);
+                if ($sql->sql_insert('confirm', [
+                    'user_id' => $id,
+                    'code'    => $code
+                ])) {
+                    $this->send_email(
+                        EMAIL['email'], 
+                        $email, 
+                        'Please verify your E-mail address to start using IPTV-Tools.', 
+                        $this->confirm_email_body($email, $code)
+                    );
+                    return true;
+                }
             }
         }
         return false;
     }
 
-    // Register
-    function register ($username, $password) {
+    // Confirm email
+    function confirm ($code) {
         global $sql;
-        if ($this->available($username)) {
-            // Create new user
-            return $sql->sql_insert('user', [
-                'username' => $username,
-                'password' => hash('sha512', $password),
-                'status'   => 1
+        $res = $sql->sql_select_array_query("SELECT user_id FROM `confirm` WHERE BINARY code = '{$code}' LIMIT 1");
+        if (count($res) === 1) {
+            $user_id = $res[0]['user_id'];
+            $sql->sql_delete('confirm', ['user_id' => $user_id]);
+            return $sql->sql_update('user', [
+                'status' => 2,
+            ], [
+                'id' => $user_id
             ]);
         }
         return false;
@@ -264,6 +267,7 @@ class user {
         if (empty($subscription['note']) || $subscription['note']['status'] !== 'COMPLETED') {
             return false;
         }
+        $result  = false;
         $current = $sql->sql_select_array_query("SELECT * FROM `subscription` WHERE user_id = '{$user_id}' ORDER BY id DESC");
         if (!empty($current)) {
             if($subscription['subscription_type'] <= $current[0]['subscription_type']) {
@@ -271,10 +275,20 @@ class user {
                 $end_date       = $subscription['end_date'];
                 $subscription['end_date'] = date('Y-m-d H:i:s', strtotime("{$end_date} + {$days_remaining} days"));
             }
-            return $sql->sql_update('subscription', $subscription, ['user_id' => $user_id]);
+            $result = $sql->sql_update('subscription', $subscription, ['user_id' => $user_id]);
         } else {
-            return $sql->sql_insert('subscription', $subscription);
+            $result = $sql->sql_insert('subscription', $subscription);
         }
+        $user = $sql->sql_select_array_query("SELECT email FROM `user` WHERE id = '{$user_id}' LIMIT 1");
+        if (count($user) === 1) {
+            $this->send_email(
+                EMAIL['email'], 
+                $user[0]['email'], 
+                'Thank you for subscribing on IPTV-Tools.com', 
+                $this->subscription_body(date('j M Y', strtotime($subscription['end_date'])))
+            );
+        }
+        return $result;
     }
 
     // Cancel account - this removes all data for this user!
@@ -284,6 +298,7 @@ class user {
         if (count($res) >= 1) {
             $user    = $res[0];
             $user_id = $user['id'];
+            $email   = $user['email'];
             if (hash('sha512', $password) === $user['password'] || $password === $user['password']) {
                 // Passwords match - lets delete everything from this user
                 // ToDo: Put it all in one query
@@ -297,6 +312,12 @@ class user {
                 $sql->sql_delete('episodes',     ['user_id' => $user_id]);
                 $sql->sql_delete('series_tmdb',  ['user_id' => $user_id]);
                 $sql->sql_delete('user',         ['id'      => $user_id]);
+                $this->send_email(
+                    EMAIL['email'], 
+                    $email, 
+                    'We are sad to see you go.', 
+                    $this->account_canceled_body()
+                );
                 return true;
             }
         }
@@ -313,5 +334,66 @@ class user {
 		    return $_SERVER['REMOTE_ADDR'];
 		}
 	}
+
+    // Confirm Email Body
+    function confirm_email_body ($email, $code) {
+        $html = file_get_contents(SITE_ROOT . "/common/email/account-verification.html");
+        $html = str_replace('___EMAIL___', $email, $html);
+        return str_replace('___CODE___', $code, $html);
+    }
+
+    // Reset Password
+    function reset_password_body ($password) {
+        $html = file_get_contents(SITE_ROOT . "/common/email/reset-password.html");
+        return str_replace('___PASSWORD___', $password, $html);
+    }
+
+    // Ticket response
+    function ticket_repsonse_body ($message) {
+        $html = file_get_contents(SITE_ROOT . "/common/email/ticket-response.html");
+        return str_replace('___MESSAGE___', $message, $html);
+    }
+
+    // Subscription
+    function subscription_body ($enddate) {
+        $html = file_get_contents(SITE_ROOT . "/common/email/subscription.html");
+        return str_replace('___ENDDATE___', $enddate, $html);
+    }
+
+    // Account canceled
+    function account_canceled_body () {
+        return file_get_contents(SITE_ROOT . "/common/email/account-removed.html");
+    }
+
+    // Send email
+    function send_email ($from, $to, $subject, $body) {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, EMAIL['url']);
+        curl_setopt($ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+            "from" => [
+                "email" => $from
+            ],
+            "to" => [
+                ["email" => $to]
+            ],
+            "subject" => $subject,
+            "html"    => $body,
+            "text"    => $body
+        ]));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            "Content-Type: application/json",
+            "X-Requested-With: XMLHttpRequest",
+            "Authorization: " . EMAIL['auth'] ,
+        ]);
+        $res = curl_exec($ch);
+        curl_close($ch);
+        return $res;
+    }
 
 }

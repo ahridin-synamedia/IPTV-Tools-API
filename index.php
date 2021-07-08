@@ -198,16 +198,6 @@ switch ($router->request_method()) {
 						}
 						break;
 
-					case 'FORGOT':
-						switch ($router->segment(++$segment, true)) {
-
-							case 'DELETE':
-								$router->json_response($administration->delete_forgot($p['id']));
-								break;
-
-						}
-						break;
-
 					case 'PAYMENT':
 						switch ($router->segment(++$segment, true)) {
 
@@ -328,25 +318,24 @@ switch ($router->request_method()) {
 						));
 						break;
 
-					case 'FORGOT':
-						$router->json_response($user->forgot(
-							$p['username'],
-							$p['email']
-						));
-						break;
-
 					case 'RESET':
 						$router->json_response($user->reset(
 							$p['username'],
-							$p['code'],
-							$p['password']
+							$p['email']
 						));
 						break;
 
 					case 'REGISTER':
 						$router->json_response($user->register(
 							$p['username'],
-							$p['password']
+							$p['password'],
+							$p['email']
+						));
+						break;
+
+					case 'CONFIRM':
+						$router->json_response($user->confirm(
+							$p['code']
 						));
 						break;
 
@@ -1011,10 +1000,6 @@ switch ($router->request_method()) {
 
 					case 'CONFIRMS':
 						$router->json_response($administration->confirms());
-						break;
-
-					case 'FORGOTS':
-						$router->json_response($administration->forgots());
 						break;
 
 					case 'PAYMENTS':
