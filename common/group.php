@@ -26,6 +26,11 @@ class group {
         return $sql->sql_select_array_query("SELECT *, (SELECT name FROM `playlist` WHERE `id` = g.playlist_id) as playlist, CASE WHEN g.group_type = 1 THEN (SELECT count(*) FROM live WHERE group_id = g.id) WHEN g.group_type = 2 THEN (SELECT count(*) FROM movie WHERE group_id = g.id) WHEN g.group_type = 3 THEN (SELECT count(*) FROM episodes WHERE group_id = g.id) END as streams FROM `groups` g WHERE user_id = '{$user_id}' LIMIT {$from}, {$amount}");
     }
 
+    function get_catchup ($user_id, $playlist_id) {
+        global $sql;
+        return $sql->sql_select_array_query("SELECT * FROM `groups` g WHERE user_id = '{$user_id}' AND playlist_id = '{$playlist_id}' AND (SELECT count(*) FROM `live` WHERE source_tv_archive = 1 AND group_id = g.id) > 0");
+    }
+
     // Add new empty group
     function add ($user_id) {
         global $sql;

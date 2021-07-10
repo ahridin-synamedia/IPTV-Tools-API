@@ -150,6 +150,12 @@ function redirect_and_play ($url) {
     header("Location: $url");
 }
 
+function log_url ($url) {
+    $fp = fopen('url.txt', 'a'); 
+    fwrite($fp, $url);   
+    fclose($fp); 
+}
+
 /************************************************************************************/
 /*																					*/
 /*				Route API Request		 											*/

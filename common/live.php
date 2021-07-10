@@ -26,6 +26,20 @@ class live {
         return $sql->sql_select_array_query("SELECT *, (SELECT name FROM `playlist` WHERE `id` = s.playlist_id) AS `playlist`, (SELECT group_name FROM `groups` WHERE `id` = s.group_id) AS `group` FROM `live` s WHERE user_id = '{$user_id}' LIMIT {$from}, {$amount}");
     }
 
+    function get_catchup ($user_id, $playlist_id, $group_id, $date) {
+        global $sql;
+        $stations = [];
+        $playlist = $sql->sql_select_array_query("SELECT * FROM `playlist` WHERE user_id = '{$user_id}' AND id = '{$playlist_id}' LIMIT 1");
+        if (count($playlist) === 1) {
+            $timeshift = intval($playlist[0]['epg_offset']) * 3600;
+            $stations  = $sql->sql_select_array_query("SELECT id, source_tv_archive_duration, stream_tvg_name, stream_tvg_id, stream_tvg_logo, source_stream_id FROM `live` WHERE user_id = '{$user_id}' AND playlist_id = '{$playlist_id}' AND group_id = '{$group_id}' AND source_tv_archive = 1 ORDER BY stream_order ASC");
+            foreach ($stations as &$station) {
+                $station['programmes'] = $sql->sql_select_array_query("SELECT DATE_ADD(p.start, INTERVAL p.offset + {$timeshift} second) as 'start', DATE_ADD(p.stop, INTERVAL p.offset + {$timeshift} second) as 'stop', p.title, p.description, p.subtitle, p.season, p.episode, p.year FROM `xmltv_programmes` p WHERE tvg_id = '{$station['stream_tvg_id']}' AND DATE_ADD(p.start, INTERVAL p.offset + {$timeshift} second) LIKE '{$date}%' AND DATE_ADD(p.stop, INTERVAL p.offset + {$timeshift} second) < NOW() ORDER BY start ASC");
+            }
+        }
+        return $stations;
+    }
+
     // Add new empty live stream
     function add ($user_id) {
         global $sql;

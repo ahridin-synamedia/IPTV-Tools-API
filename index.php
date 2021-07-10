@@ -1225,6 +1225,13 @@ switch ($router->request_method()) {
 						));
 						break;
 
+					case 'CATCH-UP':
+						$router->json_response($group->get_catchup(
+							$token->id,
+							$router->segment(++$segment)
+						));
+						break;
+
 					default:
 						$router->json_response($group->get(
 							$token->id,
@@ -1256,6 +1263,15 @@ switch ($router->request_method()) {
 							0,
 							0,
 							true
+						));
+						break;
+
+					case 'CATCH-UP':
+						$router->json_response($live->get_catchup(
+							$token->id,
+							$router->segment(++$segment),
+							$router->segment(++$segment),
+							$router->segment(++$segment)
 						));
 						break;
 
