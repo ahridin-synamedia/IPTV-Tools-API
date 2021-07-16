@@ -53,7 +53,7 @@ class playlist {
         $sql->sql_delete('groups',          ['user_id' => $user_id, 'playlist_id' => $playlist_id]);
         $sql->sql_delete('live',            ['user_id' => $user_id, 'playlist_id' => $playlist_id]);
         $sql->sql_delete('movie',           ['user_id' => $user_id, 'playlist_id' => $playlist_id]);
-        $sql->sql_delete('episode',         ['user_id' => $user_id, 'playlist_id' => $playlist_id]);
+        $sql->sql_delete('episodes',        ['user_id' => $user_id, 'playlist_id' => $playlist_id]);
         $sql->sql_delete('series_tmdb',     ['user_id' => $user_id, 'playlist_id' => $playlist_id]);
         return $sql->sql_delete('playlist', ['user_id' => $user_id, 'id' => $playlist_id]);
     }

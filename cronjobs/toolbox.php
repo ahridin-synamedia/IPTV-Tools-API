@@ -74,6 +74,9 @@ function curl_http_get ($url, $useragent = 'Mozilla/5.0 like Gecko', $headers = 
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     $output = curl_exec($ch);
     curl_close($ch);
+    if (!is_json($output)) {
+        $output = file_get_contents($url);
+    }
     return is_json($output) ? json_decode($output, true) : $output;
 }
 

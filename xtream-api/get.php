@@ -173,7 +173,8 @@ function format_stream ($stream, $group, $plus) {
             'tvg-chno'     => $stream['stream_tvg_chno'],
             'channel-id'   => $stream['stream_tvg_chno'],
             'tvg-shift'    => $stream['stream_tvg_shift'],
-            'parent-code'  => !empty($group['group_parent_code']) ? $group['group_parent_code'] : !empty($stream['stream_parent_code']) ? $stream['stream_parent_code'] : "",
+            //'parent-code'  => !empty($group['group_parent_code']) ? $group['group_parent_code'] : !empty($stream['stream_parent_code']) ? $stream['stream_parent_code'] : "",
+            'parent-code'  => (!empty($group['group_parent_code']) ? $group['group_parent_code'] : !empty($stream['stream_parent_code'])) ? $stream['stream_parent_code'] : "",
             'audio-track'  => $stream['stream_audio_track'],
             'aspect-ratio' => $stream['stream_aspect_ratio'],
             'radio'        => $stream['stream_radio'] == 1 ? "true" : ""

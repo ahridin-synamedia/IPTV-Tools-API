@@ -106,7 +106,7 @@ class dbSQL {
 			if (!is_string($key) && !is_integer($key)) {
 				continue;
 			}
-			if (is_string($value) && strlen($value) > 6 && strtotime($value)) {
+			if (is_string($value) && !is_numeric($value) && strlen($value) > 6 && strtotime($value)) {
 				$value = date('Y-m-d H:i:s', strtotime($value));
 			}
 			$_key    = $this->clean_string($key);
@@ -137,7 +137,7 @@ class dbSQL {
 			if (strtolower($key) === "sync_is_new") {
 				continue;
 			}
-			if (is_string($value) && strlen($value) > 6 && strtotime($value)) {
+			if (is_string($value) && !is_numeric($value) && strlen($value) > 6 && strtotime($value)) {
 				$value = date('Y-m-d H:i:s', strtotime($value));
 			}
 			$_key = $this->clean_string($key);

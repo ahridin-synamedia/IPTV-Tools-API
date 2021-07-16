@@ -82,32 +82,36 @@ function extract_year ($title) {
 }
 
 function extract_movie_info ($title) {
+    $result = [
+        'name' => '',
+        'year' => ''
+    ];
     if (preg_match("/^.+?(?=\\s*[(.]?(\\d{4}))/mi", $title, $n)) {
-        return [
-            'name'	=> trim(rtrim($n[0], '-')),
-            'year'	=> $n[1]
-        ];
-    } else {
-        $tags = extract_tags($title);
-        $name = $title;
-        $year = "";
-        foreach ($tags as $tag) {
-            if (string_is_year($tag)) {
-                $year = $tag;
-            }
-            $name = str_replace('[' . $tag . ']', '', $name);
-            $name = str_replace('(' . $tag . ')', '', $name);
-            $name = str_replace('|' . $tag . '|', '', $name);
-            $name = trim($name);
-        }
-        if (empty($year)) {
-            $year = extract_year($title);
-        }
-        return [
-            'name'	=> $name,
-            'year'	=> $year
-        ];
+        $result['name'] = trim(rtrim($n[0], '-'));
+        $result['year'] = $n[1];
     }
+    if (count(extract_tags($result['name'])) === 0) {
+        return $result;
+    }
+    $tags = extract_tags($title);
+    $name = $title;
+    $year = "";
+    foreach ($tags as $tag) {
+        if (string_is_year($tag)) {
+            $year = $tag;
+        }
+        $name = str_replace('[' . $tag . ']', '', $name);
+        $name = str_replace('(' . $tag . ')', '', $name);
+        $name = str_replace('|' . $tag . '|', '', $name);
+        $name = trim(rtrim(trim($name), '-'));
+    }
+    if (empty($year)) {
+        $year = extract_year($title);
+    }
+    return [
+        'name'	=> $name,
+        'year'	=> $year
+    ];
 }
 
 /************************************************************************************/

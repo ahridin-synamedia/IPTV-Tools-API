@@ -165,11 +165,11 @@ $sql->sql_query("DELETE FROM `episodes` WHERE user_id = '{$user_id}' AND playlis
 /*				Synchronize Categories (Groups)                 				    */
 /*																					*/
 /************************************************************************************/
-$categories = curl_multi_http_get([
-    "{$base_url}&action=get_live_categories",
-    "{$base_url}&action=get_vod_categories",
-    "{$base_url}&action=get_series_categories"
-]);
+$categories = [
+    curl_http_get("{$base_url}&action=get_live_categories"),
+    curl_http_get("{$base_url}&action=get_vod_categories"),
+    curl_http_get("{$base_url}&action=get_series_categories")
+];
 
 // Live
 foreach ($categories[0] as $index => $category) {

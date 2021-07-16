@@ -86,7 +86,7 @@ class serie {
         $series = $sql->sql_select_array_query("SELECT * FROM `series_tmdb` s WHERE tmdb_id in (SELECT tmdb_id FROM `tmdb_series_tv`) AND user_id = '{$user_id}' AND playlist_id = '{$playlist_id}' GROUP BY tmdb_id LIMIT {$offset}, {$limit}");
         foreach ($series as &$serie) {
             $tmdb_id = $serie['tmdb_id']; 
-            $result  = $sql->sql_select_array_query("SELECT count(DISTINCT serie_season) as 'seasons', count(serie_episode) as 'episodes' FROM `episodes` WHERE user_id = '{$user_id}' AND tmdb_id = '{$tmdb_id}' LIMIT 1");
+            $result  = $sql->sql_select_array_query("SELECT count(DISTINCT serie_season) as 'seasons', count(serie_episode) as 'episodes' FROM `episodes` WHERE user_id = '{$user_id}' AND tmdb_id = '{$tmdb_id}' AND playlist_id = '{$playlist_id}' LIMIT 1");
             $serie['episodes'] = $result[0]['episodes'];
             $serie['seasons'] = $result[0]['seasons'];
         }
@@ -99,7 +99,7 @@ class serie {
         $series = $sql->sql_select_array_query("SELECT * FROM `series_tmdb` s WHERE tmdb_id in (SELECT tmdb_id FROM `tmdb_series_popular`) AND user_id = '{$user_id}' AND playlist_id = '{$playlist_id}' GROUP BY tmdb_id LIMIT {$offset}, {$limit}");
         foreach ($series as &$serie) {
             $tmdb_id = $serie['tmdb_id']; 
-            $result  = $sql->sql_select_array_query("SELECT count(DISTINCT serie_season) as 'seasons', count(serie_episode) as 'episodes' FROM `episodes` WHERE user_id = '{$user_id}' AND tmdb_id = '{$tmdb_id}' LIMIT 1");
+            $result  = $sql->sql_select_array_query("SELECT count(DISTINCT serie_season) as 'seasons', count(serie_episode) as 'episodes' FROM `episodes` WHERE user_id = '{$user_id}' AND tmdb_id = '{$tmdb_id}' AND playlist_id = '{$playlist_id}' LIMIT 1");
             $serie['episodes'] = $result[0]['episodes'];
             $serie['seasons'] = $result[0]['seasons'];
         }
@@ -112,7 +112,7 @@ class serie {
         $series = $sql->sql_select_array_query("SELECT * FROM `series_tmdb` s WHERE tmdb_id in (SELECT tmdb_id FROM `tmdb_series_top`) AND user_id = '{$user_id}' AND playlist_id = '{$playlist_id}' GROUP BY tmdb_id LIMIT {$offset}, {$limit}");
         foreach ($series as &$serie) {
             $tmdb_id = $serie['tmdb_id']; 
-            $result  = $sql->sql_select_array_query("SELECT count(DISTINCT serie_season) as 'seasons', count(serie_episode) as 'episodes' FROM `episodes` WHERE user_id = '{$user_id}' AND tmdb_id = '{$tmdb_id}' LIMIT 1");
+            $result  = $sql->sql_select_array_query("SELECT count(DISTINCT serie_season) as 'seasons', count(serie_episode) as 'episodes' FROM `episodes` WHERE user_id = '{$user_id}' AND tmdb_id = '{$tmdb_id}' AND playlist_id = '{$playlist_id}' LIMIT 1");
             $serie['episodes'] = $result[0]['episodes'];
             $serie['seasons'] = $result[0]['seasons'];
         }
@@ -125,7 +125,7 @@ class serie {
         $series = $sql->sql_select_array_query("SELECT * FROM `series_tmdb` WHERE user_id = '{$user_id}' AND playlist_id = '{$playlist_id}' GROUP BY tmdb_id LIMIT {$offset}, {$limit}");
         foreach ($series as &$serie) {
             $tmdb_id = $serie['tmdb_id']; 
-            $result  = $sql->sql_select_array_query("SELECT count(DISTINCT serie_season) as 'seasons', count(serie_episode) as 'episodes' FROM `episodes` WHERE user_id = '{$user_id}' AND tmdb_id = '{$tmdb_id}' LIMIT 1");
+            $result  = $sql->sql_select_array_query("SELECT count(DISTINCT serie_season) as 'seasons', count(serie_episode) as 'episodes' FROM `episodes` WHERE user_id = '{$user_id}' AND tmdb_id = '{$tmdb_id}' AND playlist_id = '{$playlist_id}' LIMIT 1");
             $serie['episodes'] = $result[0]['episodes'];
             $serie['seasons'] = $result[0]['seasons'];
         }
@@ -146,7 +146,7 @@ class serie {
         $series = $sql->sql_select_array_query("SELECT * FROM `series_tmdb` WHERE user_id = '{$user_id}' AND playlist_id = '{$playlist_id}' AND tmdb LIKE '%{$search}%' GROUP BY tmdb_id");
         foreach ($series as &$serie) {
             $tmdb_id = $serie['tmdb_id']; 
-            $result  = $sql->sql_select_array_query("SELECT count(DISTINCT serie_season) as 'seasons', count(serie_episode) as 'episodes' FROM `episodes` WHERE user_id = '{$user_id}' AND tmdb_id = '{$tmdb_id}' LIMIT 1");
+            $result  = $sql->sql_select_array_query("SELECT count(DISTINCT serie_season) as 'seasons', count(serie_episode) as 'episodes' FROM `episodes` WHERE user_id = '{$user_id}' AND tmdb_id = '{$tmdb_id}' AND playlist_id = '{$playlist_id}' LIMIT 1");
             $serie['episodes'] = $result[0]['episodes'];
             $serie['seasons'] = $result[0]['seasons'];
         }

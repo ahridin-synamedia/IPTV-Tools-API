@@ -786,6 +786,18 @@ switch ($router->request_method()) {
 
 				}
 				break;
+
+			/************************************/
+			/*									*/
+			/*		  	   MAC-2-M3U     		*/
+			/*									*/
+			/************************************/
+			case 'MAC-2-M3U':
+				$router->json_response($toolbox->convert_mac_to_m3u(
+					$p['mac'],
+					$p['portal']
+				));
+				break;
 			
 			/* Other routes are invalid */
 			default: $router->invalid_route(); break;
@@ -1632,6 +1644,15 @@ switch ($router->request_method()) {
 						break;
 
 				}
+				break;
+
+			/************************************/
+			/*									*/
+			/*			   VERSIONS 	 		*/
+			/*									*/
+			/************************************/
+			case 'VERSIONS':
+				$router->json_response($toolbox->versions());
 				break;
 
 
