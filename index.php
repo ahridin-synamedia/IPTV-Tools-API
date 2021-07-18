@@ -47,6 +47,7 @@ include_once SITE_ROOT . '/common/serie.php';
 include_once SITE_ROOT . '/common/editor.php';
 include_once SITE_ROOT . '/common/xdpro.php';
 include_once SITE_ROOT . '/common/siptv.php';
+include_once SITE_ROOT . '/common/m3u2strm.php';
 
 /************************************************************************************/
 /*																					*/
@@ -77,6 +78,7 @@ $serie		    = new serie();
 $editor		    = new editor();
 $xdpro		    = new xdpro();
 $siptv          = new siptv();
+$m3u2strm       = new m3u2strm();
 
 /************************************************************************************/
 /*																					*/
@@ -750,6 +752,32 @@ switch ($router->request_method()) {
 
 			/************************************/
 			/*									*/
+			/*		   	  M3U-2-STRM    		*/
+			/*									*/
+			/************************************/
+			case 'M3U-2-STRM':
+				$token = $user->decode_token($router->getJWT());
+
+				// Check if token is valid
+				if ($token['success'] === false) {
+					$router->json_response($token['message'], 401);
+					exit();
+				} else {
+					$token = $token['payload'];
+				}
+				switch ($router->segment(++$segment, true)) {
+
+					case 'INSTANCE':
+						$router->json_response($m3u2strm->add_instance(
+							$token->id
+						));
+						break;
+
+				}
+				break;
+
+			/************************************/
+			/*									*/
 			/*			   	SIPTV	    		*/
 			/*									*/
 			/************************************/
@@ -929,6 +957,25 @@ switch ($router->request_method()) {
 						$router->json_response($xdpro->delete_downloads(
 							$token->id,
 							intval($router->segment(++$segment)) === 1
+						));
+						break;
+
+				}
+				break;
+
+			/************************************/
+			/*									*/
+			/*			  M3U-2-STRM    		*/
+			/*									*/
+			/************************************/
+			case 'M3U-2-STRM':
+				switch ($router->segment(++$segment, true)) {
+
+					case 'INSTANCE':
+						$router->json_response($m3u2strm->update_instance(
+							$token->id,
+							$router->segment(++$segment),
+							$p
 						));
 						break;
 
@@ -1608,6 +1655,27 @@ switch ($router->request_method()) {
 						));
 						break;
 
+					case 'USERAGENTS':
+						$router->json_response($xdpro->get_useragents());
+						break;
+
+				}
+				break;
+
+			/************************************/
+			/*									*/
+			/*			  M3U-2-STRM	 		*/
+			/*									*/
+			/************************************/
+			case 'M3U-2-STRM':
+				switch ($router->segment(++$segment, true)) {
+
+					case 'INSTANCES':
+						$router->json_response($m3u2strm->get_instances(
+							$token->id
+						));
+						break;
+
 				}
 				break;
 
@@ -1776,6 +1844,24 @@ switch ($router->request_method()) {
 
 					case 'DOWNLOAD':
 						$router->json_response($xdpro->delete_download(
+							$token->id,
+							$router->segment(++$segment)
+						));
+						break;
+
+				}
+				break;
+
+			/************************************/
+			/*									*/
+			/*			 M3U-2-STRM				*/
+			/*									*/
+			/************************************/
+			case 'M3U-2-STRM':
+				switch ($router->segment(++$segment, true)) {
+
+					case 'INSTANCE':
+						$router->json_response($m3u2strm->delete_instance(
 							$token->id,
 							$router->segment(++$segment)
 						));

@@ -157,6 +157,16 @@ class user {
         if (count($res) === 1) {
             $user_id = $res[0]['user_id'];
             $sql->sql_delete('confirm', ['user_id' => $user_id]);
+            $sql->sql_insert('subscription', [
+                'user_id'           => $user_id,
+                'enabled'           => 1,
+                'end_date'          => date('Y-m-d H:i:s', strtotime("+7 day")),
+                'max_playlist'      => 2,
+                'playlist_type'     => 0,
+                'subscription_type' => 1,
+                'custom_plan'       => 0,
+                'note'              => ''
+            ]);
             return $sql->sql_update('user', [
                 'status' => 2,
             ], [

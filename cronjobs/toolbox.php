@@ -47,6 +47,8 @@ function curl_multi_http_get ($urls = array(), $useragent = 'Mozilla/5.0 like Ge
         curl_setopt($curl_array[$i], CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($curl_array[$i], CURLOPT_HTTPHEADER, $headers);
         curl_setopt($curl_array[$i], CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($curl_array[$i], CURLOPT_CONNECTTIMEOUT, 0); 
+		curl_setopt($curl_array[$i], CURLOPT_TIMEOUT, 400);
         curl_multi_add_handle($curl_master, $curl_array[$i]);
     }
 
@@ -72,6 +74,8 @@ function curl_http_get ($url, $useragent = 'Mozilla/5.0 like Gecko', $headers = 
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 0); 
+	curl_setopt($ch, CURLOPT_TIMEOUT, 400);
     $output = curl_exec($ch);
     curl_close($ch);
     if (!is_json($output)) {

@@ -47,10 +47,7 @@ class toolBox {
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 0); 
-		curl_setopt($ch, CURLOPT_TIMEOUT, 400);
 		$output = curl_exec($ch);
-		$httpcd = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 		curl_close($ch);
 		return $output;
 	}
@@ -59,9 +56,9 @@ class toolBox {
 	function curl_http_get_json ($url, $useragent = 'Mozilla/5.0 like Gecko', $headers = [], $array = true) {
 		$res = $this->curl_http_get($url, $useragent, $headers);
 		if ($this->is_json($res)) {
-			return json_decode($res, $array);
+		return json_decode($res, $array);
 		} else {
-			return json_decode('[]', $array);
+		return json_decode('[]', $array);
 		}
 	}
 
@@ -83,66 +80,9 @@ class toolBox {
 		}
 	}
 
-	// Get Username and Password for mac-address.
-	function convert_mac_to_m3u ($mac, $portal) {
-		// URL Encode MAC for processing
-		$mac_address 	= rawurlencode($mac);
-		// Extract base URL
-		$_url			=  explode('/', $portal);
-		$base_url		= "{$_url[0]}//{$_url[2]}";
-		// URL's
-		$token_url		= '/portal.php?action=handshake&type=stb&token=';
-		$profile_url	= '/portal.php?type=stb&action=get_profile';
-		$list_url		= '/portal.php?action=get_ordered_list&type=vod&p=1&JsHttpRequest=1-xml';
-		// Get token from server
-		$first_token  	= $this->curl_http_get_json($base_url . $token_url)['js']['token'];
-		//echo "FIRST TOKEN\n" . var_dump($first_token);
-		// Set token in header and request new token
-		$second_token 	= $this->curl_http_get_json($base_url . $token_url, $_SERVER['HTTP_USER_AGENT'], [
-			"Authorization: Bearer $first_token",
-			"Cookie: mac={$mac_address}; stb_lang=en; timezone=Europe%2FAmsterdam"
-		])['js']['token'];
-		//echo "SECOND TOKEN\n" .var_dump($second_token);
-		// Set token in header and get profile
-		$profile = $this->curl_http_get_json($base_url . $profile_url, $_SERVER['HTTP_USER_AGENT'], [
-			"Authorization: Bearer {$second_token}",
-			"Cookie: mac={$mac_address}; stb_lang=en; timezone=Europe%2FAmsterdam"
-		]);
-		//echo "PROFILE\n" .var_dump($profile);
-		// Login failed - wrong mac address..
-		if (empty($profile['js']['id'])) {
-			return false;
-		}
-		// Get list with needed command
-		$list = $this->curl_http_get_json($base_url . $list_url, $_SERVER['HTTP_USER_AGENT'], [
-			"Authorization: Bearer {$second_token}",
-			"Cookie: mac={$mac_address}; stb_lang=en; timezone=Europe%2FAmsterdam"
-		]);
-		//echo "LIST\n" .var_dump($list);
-		// Get url for command -> grab user:pass from this url..
-		$cmd = $list['js']['data'][0]['cmd'];
-		$command_url = "/portal.php?action=create_link&type=vod&cmd={$cmd}a&JsHttpRequest=1-xml";
-		$result = $this->curl_http_get_json($base_url . $command_url, $_SERVER['HTTP_USER_AGENT'], [
-			"Authorization: Bearer {$second_token}",
-			"Cookie: mac={$mac_address}; stb_lang=en; timezone=Europe%2FAmsterdam"
-		]);
-		//echo "RESULT\n" .var_dump($result);
-		// Result array
-		$res = explode('/', $result['js']['cmd']);
-		if (count($res) < 6) {
-			return false;
-		}
-		return [
-			'host'     => $res[2],
-			'username' => $res[4],
-			'password' => $res[5],
-			'url'	   => sprintf('%s/get.php?username=%s&password=%s&type=m3u_plus&output=ts', $base_url, $res[4], $res[5])
-		];
-	}
-
 	// Playlist Groups (Xtream)
-	function playlist_load_groups ($host, $port, $username, $password) {	
-		return ['live' => $this->curl_http_get_json(
+	function playlist_load_groups ($host, $port, $username, $password) {
+        return ['live' => $this->curl_http_get_json(
             !empty($port) ?
             "http://{$host}:{$port}/player_api.php?username={$username}&password={$password}&action=get_live_categories" : 
             "http://{$host}/player_api.php?username={$username}&password={$password}&action=get_live_categories"
@@ -866,12 +806,6 @@ class toolBox {
 			}
 		}
 		return $result;
-	}
-
-	// Get Website version info
-	function versions () {
-		global $sql;
-		return $sql->sql_select_array_query("SELECT * FROM `versions` ORDER BY id DESC");
 	}
 
 }

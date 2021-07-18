@@ -23,6 +23,12 @@ class xdpro {
         return $sql->sql_select_array_query("SELECT i.*, (SELECT count(*) FROM `xdpro_downloads` WHERE user_id = '{$user_id}' AND xdpro_id = i.id) as 'downloads' FROM `xdpro` i WHERE user_id = '{$user_id}'");
     }
 
+    // Get XD-Pro useragents
+    function get_useragents () {
+        global $sql;
+        return $sql->sql_select_array_query("SELECT * FROM `xdpro_useragents` ORDER BY `text` ASC");
+    }
+
     // Add new XD-Pro instance
     function add_instance ($user_id) {
         global $sql;
