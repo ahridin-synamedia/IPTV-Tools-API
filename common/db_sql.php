@@ -109,6 +109,9 @@ class dbSQL {
 			if (is_string($value) && !is_numeric($value) && strlen($value) > 6 && strtotime($value)) {
 				$value = date('Y-m-d H:i:s', strtotime($value));
 			}
+			if (is_bool($value)) {
+				$value = intval($value);
+			}
 			$_key    = $this->clean_string($key);
 			$fields .= empty($fields) ? "`{$_key}`" : ", `{$_key}`";
 			if (!is_string($value) && !is_integer($value) && !is_bool($value) && !is_null($value)) {
@@ -139,6 +142,9 @@ class dbSQL {
 			}
 			if (is_string($value) && !is_numeric($value) && strlen($value) > 6 && strtotime($value)) {
 				$value = date('Y-m-d H:i:s', strtotime($value));
+			}
+			if (is_bool($value)) {
+				$value = intval($value);
 			}
 			$_key = $this->clean_string($key);
 			if (!is_string($value) && !is_integer($value) && !is_bool($value) && !is_null($value)) {

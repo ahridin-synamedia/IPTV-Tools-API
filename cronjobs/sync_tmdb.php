@@ -135,10 +135,10 @@ function get_movie_tmdb_id ($title, $year) {
 }
 
 // Find series by title and year
-function get_series_tmdb_id ($title) {
+function get_series_tmdb_id ($title, $year) {
     global $tmdb_api_key;
     $_title = urlencode($title);
-    $url = "https://api.themoviedb.org/3/search/tv?api_key={$tmdb_api_key}&query={$_title}";
+    $url = "https://api.themoviedb.org/3/search/tv?api_key={$tmdb_api_key}&query={$_title}&first_air_date_year={$year}";
     $results = curl_http_get($url)['results'];
     foreach ($results as $series) {
         if (strcasecmp($title, $series['name']) === 0 || strcasecmp($title, $series['original_name']) === 0) {
@@ -235,7 +235,7 @@ $old_tmdb_id = "";
 foreach ($series as $serie) {
     if ($old_serie !== $serie['serie_name']) {
         if (empty($serie['tmdb_id'])) {
-            $tmdb_id = get_series_tmdb_id($serie['serie_name']);
+            $tmdb_id = get_series_tmdb_id($serie['serie_name'], $serie['serie_year']);
         } else {
             $tmdb_id = $serie['tmdb_id'];
         }

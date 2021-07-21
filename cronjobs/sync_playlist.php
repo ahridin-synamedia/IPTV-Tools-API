@@ -89,6 +89,14 @@ function extract_serie_name ($title) {
     return trim($name);
 }
 
+function extract_serie_year ($date) {
+    $d = strtotime($date);
+    if ($d !== false) {
+        return date('Y', $d);
+    }
+    return '';
+}
+
 /************************************************************************************/
 /*																					*/
 /*				Playlist                                    					    */
@@ -335,6 +343,7 @@ foreach ($series as $serie) {
                 'stream_tvg_logo'            => $serie['cover'],
                 'stream_order'               => $serie['num'],
                 'serie_name'                 => extract_serie_name($serie['name']),
+                'serie_year'                 => extract_serie_year($serie['releaseDate']),
                 'serie_season'               => $episode['season'],
                 'serie_episode'              => $episode['episode_num'],
                 'serie_trailer'              => $serie['youtube_trailer'],

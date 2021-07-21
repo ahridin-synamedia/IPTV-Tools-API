@@ -160,7 +160,7 @@ class user {
             $sql->sql_insert('subscription', [
                 'user_id'           => $user_id,
                 'enabled'           => 1,
-                'end_date'          => date('Y-m-d H:i:s', strtotime("+7 day")),
+                'end_date'          => date('Y-m-d H:i:s', strtotime("+7 day midnight -1 sec")),
                 'max_playlist'      => 2,
                 'playlist_type'     => 0,
                 'subscription_type' => 1,

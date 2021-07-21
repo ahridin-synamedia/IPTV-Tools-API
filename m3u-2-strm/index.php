@@ -83,6 +83,42 @@ switch ($router->request_method()) {
                 $router->json_response($result, $result !== false);
                 break;
 
+            // Total Movies
+            case 'TOTAL-MOVIES':
+                $router->json_response($m3u2strm->total_movies($p['api_key']));
+                break;
+                
+            // Get Movies
+            case 'MOVIES':
+                $router->json_response($m3u2strm->movies(
+                    $p['api_key'],
+                    $p['from'],
+                    $p['limit']
+                ));
+                break;
+
+            // Total Series
+            case 'TOTAL-SERIES':
+                $router->json_response($m3u2strm->total_series($p['api_key']));
+                break;
+                
+            // Get Series
+            case 'SERIES':
+                $router->json_response($m3u2strm->series(
+                    $p['api_key'],
+                    $p['from'],
+                    $p['limit']
+                ));
+                break;
+
+            // Get Episodes
+            case 'EPISODES':
+                $router->json_response($m3u2strm->episodes(
+                    $p['api_key'],
+                    $p['tmdb_id']
+                ));
+                break;
+
 
             default : $router->invalid_route(); break;
 
