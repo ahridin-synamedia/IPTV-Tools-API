@@ -48,6 +48,7 @@ include_once SITE_ROOT . '/common/editor.php';
 include_once SITE_ROOT . '/common/xdpro.php';
 include_once SITE_ROOT . '/common/siptv.php';
 include_once SITE_ROOT . '/common/m3u2strm.php';
+include_once SITE_ROOT . '/common/kodi.php';
 
 /************************************************************************************/
 /*																					*/
@@ -79,6 +80,7 @@ $editor		    = new editor();
 $xdpro		    = new xdpro();
 $siptv          = new siptv();
 $m3u2strm       = new m3u2strm();
+$kodi           = new kodi();
 
 /************************************************************************************/
 /*																					*/
@@ -778,6 +780,32 @@ switch ($router->request_method()) {
 
 			/************************************/
 			/*									*/
+			/*		   	  	 KODI	    		*/
+			/*									*/
+			/************************************/
+			case 'KODI':
+				$token = $user->decode_token($router->getJWT());
+
+				// Check if token is valid
+				if ($token['success'] === false) {
+					$router->json_response($token['message'], 401);
+					exit();
+				} else {
+					$token = $token['payload'];
+				}
+				switch ($router->segment(++$segment, true)) {
+
+					case 'INSTANCE':
+						$router->json_response($kodi->add_instance(
+							$token->id
+						));
+						break;
+
+				}
+				break;
+
+			/************************************/
+			/*									*/
 			/*			   	SIPTV	    		*/
 			/*									*/
 			/************************************/
@@ -973,6 +1001,25 @@ switch ($router->request_method()) {
 
 					case 'INSTANCE':
 						$router->json_response($m3u2strm->update_instance(
+							$token->id,
+							$router->segment(++$segment),
+							$p
+						));
+						break;
+
+				}
+				break;
+
+			/************************************/
+			/*									*/
+			/*			  	 KODI	    		*/
+			/*									*/
+			/************************************/
+			case 'KODI':
+				switch ($router->segment(++$segment, true)) {
+
+					case 'INSTANCE':
+						$router->json_response($kodi->update_instance(
 							$token->id,
 							$router->segment(++$segment),
 							$p
@@ -1681,6 +1728,29 @@ switch ($router->request_method()) {
 
 			/************************************/
 			/*									*/
+			/*			   	 KODI		 		*/
+			/*									*/
+			/************************************/
+			case 'KODI':
+				switch ($router->segment(++$segment, true)) {
+
+					case 'INSTANCES':
+						$router->json_response($kodi->get_instances(
+							$token->id
+						));
+						break;
+
+					case 'GROUPS':
+						$router->json_response($kodi->get_groups(
+							$token->id
+						));
+						break;
+
+				}
+				break;
+
+			/************************************/
+			/*									*/
 			/*			    SIPTV		 		*/
 			/*									*/
 			/************************************/
@@ -1862,6 +1932,24 @@ switch ($router->request_method()) {
 
 					case 'INSTANCE':
 						$router->json_response($m3u2strm->delete_instance(
+							$token->id,
+							$router->segment(++$segment)
+						));
+						break;
+
+				}
+				break;
+
+			/************************************/
+			/*									*/
+			/*				 KODI				*/
+			/*									*/
+			/************************************/
+			case 'KODI':
+				switch ($router->segment(++$segment, true)) {
+
+					case 'INSTANCE':
+						$router->json_response($kodi->delete_instance(
 							$token->id,
 							$router->segment(++$segment)
 						));
