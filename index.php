@@ -316,6 +316,14 @@ switch ($router->request_method()) {
 						));
 						break;
 
+					case 'UPDATE-PASSWORD':
+						$router->json_response($user->update_password(
+							$p['username'],
+							$p['password'],
+							$p['new_password']
+						));
+						break;
+
 					case 'LOGOUT':
 						$router->json_response($user->logout(
 							$user->decode_token($router->getJWT())['payload']->id

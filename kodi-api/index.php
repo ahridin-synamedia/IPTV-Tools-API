@@ -84,6 +84,13 @@ switch ($router->request_method()) {
                 $router->json_response($result, $result !== false);
                 break;
 
+			// Account Information
+			case 'ACCOUNT':
+				$router->json_response($kodi->account_information(
+					$p['api_key']
+				));
+				break;
+
 			// Movies
             case 'MOVIES':
 				switch ($router->segment(++$segment, true)) {
@@ -187,11 +194,20 @@ switch ($router->request_method()) {
 						));
 						break;
 
+					case 'SEASONS':
+						$router->json_response($kodi->series_seasons(
+							$p['api_key'],
+							$p['playlist_id'],
+							$p['tmdb_id']
+						));
+						break;
+
 					case 'EPISODES':
 						$router->json_response($kodi->series_episodes(
 							$p['api_key'],
 							$p['playlist_id'],
-							$p['tmdb_id']
+							$p['tmdb_id'],
+							$p['season']
 						));
 						break;
 

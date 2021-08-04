@@ -106,11 +106,16 @@ class dbSQL {
 			if (!is_string($key) && !is_integer($key)) {
 				continue;
 			}
+			if (is_string($value) && strlen($value) > 6 && strtotime($value)) {
+				$value = date('Y-m-d H:i:s', strtotime($value));
+			}
 			$_key    = $this->clean_string($key);
 			$fields .= empty($fields) ? "`{$_key}`" : ", `{$_key}`";
-			if (!is_string($value) && !is_integer($value) && !is_bool($value)) {
+			if (!is_string($value) && !is_integer($value) && !is_bool($value) && !is_null($value)) {
 				$_value  = $this->clean_string(serialize($value));
 				$values .= empty($values) ? "'{$_value}'" : ", '{$_value}'";
+			} elseif (is_null($value)) {
+				$values .= empty($values) ? "`{$_key}` = NULL" : ", `{$_key}` = NULL";
 			} else {
 				$_value  = $this->clean_string($value);
 				$values .= empty($values) ? "'{$_value}'" : ", '{$_value}'";
@@ -132,49 +137,15 @@ class dbSQL {
 			if (strtolower($key) === "sync_is_new") {
 				continue;
 			}
-			$_key = $this->clean_string($key);
-			if (!is_string($value) && !is_integer($value) && !is_bool($value)) {
-				$_value = $this->clean_string(serialize($value));
-				$str   .= empty($str) ? "`{$_key}` = '{$_value}'" : ", `{$_key}` = '{$_value}'";
-			} else {
-				$_value = $this->clean_string($value);
-				$str   .= empty($str) ? "`{$_key}` = '{$_value}'" : ", `{$_key}` = '{$_value}'";
-			}
-		}
-		return $str;
-	}
-
-	// Convert assoc array to key = val string for update sql query
-	private function playlist_update_data_str ($data) {
-		$exclude = [
-			"sync_is_new", 
-			"group_id", 
-			"stream_tvg_name", 
-			"stream_tvg_id", 
-			"stream_tvg_logo", 
-			"stream_order",  
-			"serie_season", 
-			"serie_episode", 
-			"serie_trailer", 
-			"group_order", 
-			"group_type", 
-			"group_name"
-		];
-		if (!is_array($data) || empty($data)) {
-			return false;
-		}
-		$str = "";
-		foreach ($data as $key => $value) {
-			if (!is_string($key) && !is_integer($key)) {
-				continue;
-			}
-			if (in_array(strtolower($key), $exclude)) {
-				continue;
+			if (is_string($value) && strlen($value) > 6 && strtotime($value)) {
+				$value = date('Y-m-d H:i:s', strtotime($value));
 			}
 			$_key = $this->clean_string($key);
-			if (!is_string($value) && !is_integer($value) && !is_bool($value)) {
+			if (!is_string($value) && !is_integer($value) && !is_bool($value) && !is_null($value)) {
 				$_value = $this->clean_string(serialize($value));
 				$str   .= empty($str) ? "`{$_key}` = '{$_value}'" : ", `{$_key}` = '{$_value}'";
+			} elseif (is_null($value)) {
+				$str   .= empty($str) ? "`{$_key}` = NULL" : ", `{$_key}` = NULL";
 			} else {
 				$_value = $this->clean_string($value);
 				$str   .= empty($str) ? "`{$_key}` = '{$_value}'" : ", `{$_key}` = '{$_value}'";
@@ -232,7 +203,6 @@ class dbSQL {
 	private function create_query ($method, $table, $fields = [], $data = [], $conditions = []) {
 		switch ($method) {
 			case 'INSERT'	 : return sprintf("INSERT INTO `{$table}` %s", $this->insert_data_str($data));
-			case 'PLAYLIST'  : return sprintf("INSERT INTO `{$table}` %s ON DUPLICATE KEY UPDATE %s", $this->insert_data_str($data), $this->playlist_update_data_str($data));
 			case 'DUPLICATE' : return sprintf("INSERT INTO `{$table}` %s ON DUPLICATE KEY UPDATE %s", $this->insert_data_str($data), $this->update_data_str($data));
 			case 'UPDATE'	 : return sprintf("UPDATE `{$table}` SET %s WHERE %s", $this->update_data_str($data), $this->update_condition_str($conditions));
 			case 'DELETE'	 : return sprintf("DELETE FROM `{$table}` WHERE %s", $this->update_condition_str($conditions));
@@ -244,11 +214,6 @@ class dbSQL {
 	// Insert query
 	function sql_insert ($table, $data) {
 		return $this->conn->query($this->create_query('INSERT', $table, [], $data));
-	}
-
-	// Insert on duplicate update query (Playlist exclude keys)
-	function sql_playlist_insert_update ($table, $data) {
-		return $this->conn->query($this->create_query('PLAYLIST', $table, [], $data));
 	}
 
 	// Insert on duplicate update query

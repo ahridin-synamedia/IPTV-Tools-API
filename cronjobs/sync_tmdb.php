@@ -47,6 +47,9 @@ date_default_timezone_set('Europe/Amsterdam');
 /*																					*/
 /************************************************************************************/
 function extract_between ($text, $left, $right) {
+    if (strlen($text) == 0) {
+        return [];
+    }
     $r = [];
     $e = 0;
     $p = 0;
@@ -76,7 +79,7 @@ function string_is_year ($str) {
 
 function extract_year ($title) {
     if (preg_match("(19\d{2}|20(?:0\d|1[0-9]|2[0-9]))", $title, $n)) {
-        return $n[0];
+        return string_is_year($n[0]) ? $n[0] : '';
     }
     return '';
 }
@@ -90,7 +93,7 @@ function extract_movie_info ($title) {
         $result['name'] = trim(rtrim($n[0], '-'));
         $result['year'] = $n[1];
     }
-    if (count(extract_tags($result['name'])) === 0) {
+    if (count(extract_tags($result['name'])) === 0 && strlen($result['name']) > 0) {
         return $result;
     }
     $tags = extract_tags($title);
@@ -103,6 +106,7 @@ function extract_movie_info ($title) {
         $name = str_replace('[' . $tag . ']', '', $name);
         $name = str_replace('(' . $tag . ')', '', $name);
         $name = str_replace('|' . $tag . '|', '', $name);
+        $name = rtrim(rtrim(rtrim(str_replace('_', ' ', $name), 'UHD'), 'HD'), '4K');
         $name = trim(rtrim(trim($name), '-'));
     }
     if (empty($year)) {
@@ -125,13 +129,16 @@ function get_movie_tmdb_id ($title, $year) {
     global $tmdb_api_key;
     $_title = urlencode($title);
     $url = "https://api.themoviedb.org/3/search/movie?api_key={$tmdb_api_key}&query={$_title}&year={$year}";
-    $results = curl_http_get($url)['results'];
-    foreach ($results as $movies) {
-        if ((isset($movies['name']) && strcasecmp($title, $movies['name']) === 0) || (isset($movies['original_name']) && strcasecmp($title, $movies['original_name']) === 0)) {
-            return $series['id'];
+    $results = curl_http_get($url);
+    if (isset($results['results'])) {
+        foreach ($results['results'] as $movie) {
+            if ((isset($movie['title']) && strcasecmp($title, $movie['title']) === 0) || (isset($movie['original_title']) && strcasecmp($title, $movie['original_title']) === 0)) {
+                return $movie['id'];
+            }
         }
+        return (count($results['results']) > 0 && isset($results['results'][0]) && isset($results['results'][0]['id'])) ? $results['results'][0]['id'] : '';
     }
-    return count($results) > 0 ? $results[0]['id'] : '';
+    return '';
 }
 
 // Find series by title and year
@@ -139,13 +146,16 @@ function get_series_tmdb_id ($title, $year) {
     global $tmdb_api_key;
     $_title = urlencode($title);
     $url = "https://api.themoviedb.org/3/search/tv?api_key={$tmdb_api_key}&query={$_title}&first_air_date_year={$year}";
-    $results = curl_http_get($url)['results'];
-    foreach ($results as $series) {
-        if (strcasecmp($title, $series['name']) === 0 || strcasecmp($title, $series['original_name']) === 0) {
-            return $series['id'];
+    $results = curl_http_get($url);
+    if (isset($results['results'])) {
+        foreach ($results['results'] as $series) {
+            if ((isset($series['name']) && strcasecmp($title, $series['name']) === 0) || (isset($series['original_name']) && strcasecmp($title, $series['original_name']) === 0)) {
+                return $series['id'];
+            }
         }
+        return (count($results['results']) > 0 && isset($results['results'][0]) && isset($results['results'][0]['id'])) ? $results['results'][0]['id'] : '';
     }
-    return count($results) > 0 ? $results[0]['id'] : '';
+    return '';
 }
 
 /************************************************************************************/
@@ -213,6 +223,13 @@ foreach ($movies as $movie) {
             'tmdb_keywords' => isset($movie_tmdb[2]['keywords']) ? $movie_tmdb[2]['keywords'] : [],
             'tmdb_similar'  => isset($movie_tmdb[3]['results'])  ? $movie_tmdb[3]['results']  : [],
             'tmdb_videos'   => isset($movie_tmdb[4]['results'])  ? $movie_tmdb[4]['results']  : []
+        ], [
+            'id' => $movie['id']
+        ]);
+    } else {
+        $sql->sql_update('movie', [
+            'movie_name' => $movie_title,
+            'movie_year' => $movie_year
         ], [
             'id' => $movie['id']
         ]);

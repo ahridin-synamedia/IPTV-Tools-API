@@ -120,6 +120,26 @@ class user {
         return false;
     }
 
+    // Update user password from profile
+    function update_password ($username, $password, $new_password) {
+        global $sql;
+        // Find user that matches this username and password
+        $res = $sql->sql_select_array_query("SELECT * FROM `user` WHERE username = '{$username}' AND status = 2");
+        if (count($res) >= 1) {
+            $user    = $res[0];
+            $user_id = $user['id'];
+            // Compare the password
+            if (hash('sha512', $password) === $user['password']) {
+                return $sql->sql_update('user', ['password' => hash('sha512', $new_password)], ['id' => $user_id]);
+            } else {
+               return false;
+            }
+        } else {
+            return false;
+        }
+        return false;
+    }
+
     // Register
     function register ($username, $password, $email) {
         global $sql;

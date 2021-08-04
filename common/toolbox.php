@@ -39,16 +39,20 @@ class toolBox {
 	}
 
 	// CURL HTTP.
-	function curl_http_get ($url, $useragent = 'Mozilla/5.0 like Gecko', $headers = []) {
+	function curl_http_get ($url, $useragent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.106 Safari/537.36', $headers = ['Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9', 'Accept-Language: en-US,en;q=0.9,nl;q=0.8']) {
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($ch, CURLOPT_USERAGENT, $useragent);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 0); 
-		curl_setopt($ch, CURLOPT_TIMEOUT, 400);
+		curl_setopt($ch, CURLOPT_TIMEOUT, 3600);
+		curl_setopt($ch, CURLOPT_MAXREDIRS, -1);
+		curl_setopt($ch, CURLOPT_COOKIEJAR, 'cookies.txt');
+		curl_setopt($ch, CURLOPT_COOKIEFILE, 'cookies.txt');
 		$output = curl_exec($ch);
 		$httpcd = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 		curl_close($ch);
@@ -56,12 +60,54 @@ class toolBox {
 	}
 
 	// CURL HTTP JSON.
-	function curl_http_get_json ($url, $useragent = 'Mozilla/5.0 like Gecko', $headers = [], $array = true) {
+	function curl_http_get_json ($url, $useragent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.106 Safari/537.36', $headers = ['Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9', 'Accept-Language: en-US,en;q=0.9,nl;q=0.8'], $array = true) {
 		$res = $this->curl_http_get($url, $useragent, $headers);
 		if ($this->is_json($res)) {
 			return json_decode($res, $array);
 		} else {
 			return json_decode('[]', $array);
+		}
+	}
+
+	// CURL Request with proxy
+	function curl_http_get_proxy ($url) {
+		$proxies = [
+			'103.69.123.239:5432',
+			'139.5.181.154:5432',
+			'185.177.230.232:5432'
+		];
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, [
+			'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+			'Upgrade-Insecure-Requests: 1',
+			'Cache-Control: max-age=0'
+		]);
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 0); 
+		curl_setopt($ch, CURLOPT_TIMEOUT, 3600);
+		curl_setopt($ch, CURLOPT_MAXREDIRS, -1);
+		curl_setopt($ch, CURLOPT_COOKIEJAR, 'cookies.txt');
+		curl_setopt($ch, CURLOPT_COOKIEFILE, 'cookies.txt');
+		curl_setopt($ch, CURLOPT_PROXY, $proxies[array_rand($proxies)]);
+		curl_setopt($ch, CURLOPT_PROXYUSERPWD, 'igxl6:1vkga6z6');
+		$output = curl_exec($ch);
+		$httpcd = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		curl_close($ch);
+		return $output;
+	}
+
+	// CURL HTTP JSON.
+	function curl_http_get_proxy_json ($url) {
+		$res = $this->curl_http_get_proxy($url);
+		if ($this->is_json($res)) {
+			return json_decode($res, true);
+		} else {
+			return json_decode('[]', true);
 		}
 	}
 
@@ -75,7 +121,7 @@ class toolBox {
 	// Playlist AUTH (Xtream)
 	function playlist_auth ($host, $port, $username, $password, $full = false) {
 		$url = !empty($port) ? "http://{$host}:{$port}/player_api.php?username={$username}&password={$password}" : "http://{$host}/player_api.php?username={$username}&password={$password}";
-		$res = $this->curl_http_get_json($url);
+		$res = $this->curl_http_get_proxy_json($url);
 		if ($full === true) {
 			return $res;
 		} else {
@@ -142,20 +188,20 @@ class toolBox {
 
 	// Playlist Groups (Xtream)
 	function playlist_load_groups ($host, $port, $username, $password) {	
-		return ['live' => $this->curl_http_get_json(
+		return ['live' => $this->curl_http_get_proxy_json(
             !empty($port) ?
             "http://{$host}:{$port}/player_api.php?username={$username}&password={$password}&action=get_live_categories" : 
-            "http://{$host}/player_api.php?username={$username}&password={$password}&action=get_live_categories"
+            "http://{$host}:80/player_api.php?username={$username}&password={$password}&action=get_live_categories"
         ),
-        'movies' => $this->curl_http_get_json(
+        'movies' => $this->curl_http_get_proxy_json(
             !empty($port) ?
             "http://{$host}:{$port}/player_api.php?username={$username}&password={$password}&action=get_vod_categories" : 
-            "http://{$host}/player_api.php?username={$username}&password={$password}&action=get_vod_categories"
+            "http://{$host}:80/player_api.php?username={$username}&password={$password}&action=get_vod_categories"
         ),
-        'series' => $this->curl_http_get_json(
+        'series' => $this->curl_http_get_proxy_json(
             !empty($port) ?
             "http://{$host}:{$port}/player_api.php?username={$username}&password={$password}&action=get_series_categories" : 
-            "http://{$host}/player_api.php?username={$username}&password={$password}&action=get_series_categories"
+            "http://{$host}:80/player_api.php?username={$username}&password={$password}&action=get_series_categories"
         )];
 	}
 

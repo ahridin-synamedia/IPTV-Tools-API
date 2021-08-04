@@ -42,13 +42,19 @@ class kodi {
         return false;
     }
 
+    // Account Information
+    function account_information ($api_key) {
+        global $sql;
+        return $sql->sql_select_array_query("SELECT subscription_type, playlist_type, UNIX_TIMESTAMP(created) as `start`, UNIX_TIMESTAMP(end_date) as `end`, (SELECT `name` FROM `kodi` WHERE api_key = '{$api_key}') as `name` FROM `subscription` WHERE user_id = (SELECT user_id FROM `kodi` WHERE api_key = '{$api_key}') LIMIT 1")[0];
+    }
+
     // Movies - Now in theaters
     function movies_now_in_theaters ($api_key) {
         global $sql;
         $groups = $sql->sql_select_array_query("SELECT groups FROM `kodi` WHERE api_key = '{$api_key}'");
         if (count($groups) == 1) {
             $groups = implode(',', $groups[0]['groups']);
-            $movies =  $sql->sql_select_array_query("SELECT * FROM (SELECT `id`, UNIX_TIMESTAMP(created_at) as `added`, `stream_tvg_logo`, `source_container_extension`, `tmdb_id`, `tmdb`, `tmdb_keywords`, `tmdb_credits`, `tmdb_similar`, `tmdb_videos`, (SELECT api_password FROM playlist WHERE user_id = (SELECT user_id FROM `kodi` WHERE api_key = '{$api_key}') AND id = m.playlist_id) as 'password' FROM `movie` m WHERE tmdb_id in (SELECT tmdb_id FROM `tmdb_movies_cinema`) AND user_id = (SELECT user_id FROM `kodi` WHERE api_key = '{$api_key}') AND group_id in ({$groups}) AND tmdb <> '' AND tmdb IS NOT NULL AND `movie_year` >= YEAR(NOW()) AND `sync_is_removed` = 0 ORDER BY `movie_year`) as movies GROUP BY tmdb_id LIMIT 0, 250");
+            $movies =  $sql->sql_select_array_query("SELECT * FROM (SELECT `id`, UNIX_TIMESTAMP(created_at) as `added`, `stream_tvg_logo`, `source_container_extension`, `tmdb_id`, `tmdb`, `tmdb_keywords`, `tmdb_credits`, `tmdb_similar`, `tmdb_videos`, (SELECT api_password FROM playlist WHERE user_id = (SELECT user_id FROM `kodi` WHERE api_key = '{$api_key}') AND id = m.playlist_id) as 'password' FROM `movie` m WHERE tmdb_id in (SELECT tmdb_id FROM `tmdb_movies_cinema`) AND user_id = (SELECT user_id FROM `kodi` WHERE api_key = '{$api_key}') AND group_id in ({$groups}) AND tmdb <> '' AND tmdb IS NOT NULL AND `sync_is_removed` = 0 ORDER BY `movie_year`) as movies GROUP BY tmdb_id LIMIT 0, 250");
             foreach ($movies as $index => $movie) {
                 if (empty($movie['tmdb'])) {
                     unset($movies[$index]);
@@ -269,13 +275,24 @@ class kodi {
         return [];
     }
 
-    // Series - Episodes
-    function series_episodes ($api_key, $playlist_id, $tmdb_id) {
+    // Series - seasons
+    function series_seasons ($api_key, $playlist_id, $tmdb_id) {
         global $sql;
         $groups = $sql->sql_select_array_query("SELECT groups FROM `kodi` WHERE api_key = '{$api_key}'");
         if (count($groups) == 1) {
             $groups = implode(',', $groups[0]['groups']);
-            return $sql->sql_select_array_query("SELECT * FROM `episodes` WHERE user_id = (SELECT user_id FROM `kodi` WHERE api_key = '{$api_key}') AND playlist_id = '{$playlist_id}' AND tmdb_id = '{$tmdb_id}' ORDER BY serie_season ASC, serie_episode ASC");
+            return $sql->sql_select_array_query("SELECT DISTINCT serie_season FROM `episodes` where user_id = (SELECT user_id FROM `kodi` WHERE api_key = '{$api_key}') and playlist_id = '{$playlist_id}' and tmdb_id = '{$tmdb_id}' ORDER BY serie_season ASC");
+        }
+        return [];
+    }
+
+    // Series - Episodes
+    function series_episodes ($api_key, $playlist_id, $tmdb_id, $season) {
+        global $sql;
+        $groups = $sql->sql_select_array_query("SELECT groups FROM `kodi` WHERE api_key = '{$api_key}'");
+        if (count($groups) == 1) {
+            $groups = implode(',', $groups[0]['groups']);
+            return $sql->sql_select_array_query("SELECT * FROM `episodes` WHERE user_id = (SELECT user_id FROM `kodi` WHERE api_key = '{$api_key}') AND playlist_id = '{$playlist_id}' AND tmdb_id = '{$tmdb_id}' AND serie_season = '{$season}' ORDER BY serie_episode ASC");
         }
         return [];
     }

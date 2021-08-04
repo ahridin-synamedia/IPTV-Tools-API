@@ -42,6 +42,9 @@ date_default_timezone_set('Europe/Amsterdam');
 /*																					*/
 /************************************************************************************/
 function extract_between ($text, $left, $right) {
+    if (strlen($text) == 0) {
+        return [];
+    }
     $r = [];
     $e = 0;
     $p = 0;
@@ -79,12 +82,13 @@ function extract_serie_name ($title) {
         $name = str_replace('|' . $tag . '|', '', $name);
     }
     // Remove sources
-    $sources = [' VIDEOLAND', ' HBO', ' NETFLIX', ' NF', ' DISNEY+', ' DISNEY', ' HULU'];
+    $sources = [' VIDEOLAND', ' HBO', ' NETFLIX', ' NF', ' DISNEY+', ' DISNEY', ' HULU', '4K', 'HD', 'UHD'];
     foreach ($sources as $source) {
         if (str_ends_with_ci($name, $source)) {
             $name = str_ireplace($source, '', $name);
         }
     }
+    $name = str_replace('.', ' ', str_replace('_', ' ', $name));
     // Return cleaned string
     return trim($name);
 }
@@ -92,7 +96,8 @@ function extract_serie_name ($title) {
 function extract_serie_year ($date) {
     $d = strtotime($date);
     if ($d !== false) {
-        return date('Y', $d);
+        $y = date('Y', $d); 
+        return $y >= 1900 && $y <= intval(date("Y")) ? $y : '';
     }
     return '';
 }
@@ -130,6 +135,10 @@ $host     = $playlist[0]['source_host'];
 $port     = $playlist[0]['source_port'];
 $username = $playlist[0]['source_username'];
 $password = $playlist[0]['source_password'];
+
+if (empty($host) || empty($username) || empty($password)) {
+    exit;
+}
 
 $base_url = !empty($port) ? "http://{$host}:{$port}/player_api.php?username={$username}&password={$password}" : "http://{$host}/player_api.php?username={$username}&password={$password}";
 
