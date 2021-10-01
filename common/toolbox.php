@@ -72,9 +72,11 @@ class toolBox {
 	// CURL Request with proxy
 	function curl_http_get_proxy ($url) {
 		$proxies = [
-			'103.69.123.239:5432',
-			'139.5.181.154:5432',
-			'185.177.230.232:5432'
+			'103.219.82.34:5432',
+			'103.219.82.37:5432',
+			'103.219.82.56:5432',
+			'107.178.186.81:5432',
+			'107.178.186.124:5432'
 		];
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
@@ -94,7 +96,7 @@ class toolBox {
 		curl_setopt($ch, CURLOPT_COOKIEJAR, 'cookies.txt');
 		curl_setopt($ch, CURLOPT_COOKIEFILE, 'cookies.txt');
 		curl_setopt($ch, CURLOPT_PROXY, $proxies[array_rand($proxies)]);
-		curl_setopt($ch, CURLOPT_PROXYUSERPWD, 'igxl6:1vkga6z6');
+    	curl_setopt($ch, CURLOPT_PROXYUSERPWD, 'c3cuf:i0av9hpf');
 		$output = curl_exec($ch);
 		$httpcd = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 		curl_close($ch);
@@ -109,6 +111,7 @@ class toolBox {
 		} else {
 			return json_decode('[]', true);
 		}
+		//return $this->curl_http_get_json($url);
 	}
 
 	// Get genres

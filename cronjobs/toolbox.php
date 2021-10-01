@@ -40,9 +40,11 @@ function curl_multi_http_get ($urls = array(), $useragent = 'Mozilla/5.0 (X11; L
     $curl_master = curl_multi_init();
 
     $proxies = [
-        '103.69.123.239:5432',
-        '139.5.181.154:5432',
-        '185.177.230.232:5432'
+        '103.219.82.34:5432',
+        '103.219.82.37:5432',
+        '103.219.82.56:5432',
+        '107.178.186.81:5432',
+        '107.178.186.124:5432'
     ];
 
     for ($i = 0; $i < $url_count; $i++) {
@@ -60,7 +62,7 @@ function curl_multi_http_get ($urls = array(), $useragent = 'Mozilla/5.0 (X11; L
         curl_setopt($curl_array[$i], CURLOPT_COOKIEJAR, 'cookies.txt');
         curl_setopt($curl_array[$i], CURLOPT_COOKIEFILE, 'cookies.txt');
         curl_setopt($curl_array[$i], CURLOPT_PROXY, $proxies[array_rand($proxies)]);
-        curl_setopt($curl_array[$i], CURLOPT_PROXYUSERPWD, 'igxl6:1vkga6z6');
+        curl_setopt($curl_array[$i], CURLOPT_PROXYUSERPWD, 'c3cuf:i0av9hpf');
         curl_multi_add_handle($curl_master, $curl_array[$i]);
     }
 
@@ -80,9 +82,11 @@ function curl_multi_http_get ($urls = array(), $useragent = 'Mozilla/5.0 (X11; L
 // CURL HTTP.
 function curl_http_get ($url, $useragent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.106 Safari/537.36', $headers = ['Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9', 'Accept-Language: en-US,en;q=0.9,nl;q=0.8']) {
     $proxies = [
-        '103.69.123.239:5432',
-        '139.5.181.154:5432',
-        '185.177.230.232:5432'
+        '103.219.82.34:5432',
+        '103.219.82.37:5432',
+        '103.219.82.56:5432',
+        '107.178.186.81:5432',
+        '107.178.186.124:5432'
     ];
     
     $ch = curl_init();
@@ -99,7 +103,7 @@ function curl_http_get ($url, $useragent = 'Mozilla/5.0 (X11; Linux x86_64) Appl
     curl_setopt($ch, CURLOPT_COOKIEJAR, 'cookies.txt');
     curl_setopt($ch, CURLOPT_COOKIEFILE, 'cookies.txt');
     curl_setopt($ch, CURLOPT_PROXY, $proxies[array_rand($proxies)]);
-    curl_setopt($ch, CURLOPT_PROXYUSERPWD, 'igxl6:1vkga6z6');
+    curl_setopt($ch, CURLOPT_PROXYUSERPWD, 'c3cuf:i0av9hpf');
 
     $output = curl_exec($ch);
     curl_close($ch);

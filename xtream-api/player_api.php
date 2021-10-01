@@ -394,6 +394,15 @@ function format_epg ($channel, $epg, $short) {
     return $result;
 }
 
+function active_subscription ($subscription) {
+    if ($subscription['expire'] != null) {
+        $expire = new DateTime($subscription['expire']);
+        $now    = new DateTime();
+        return $expire < $now;
+    }
+    return true;
+}
+
 $parameters   = parse_parameters();
 $playlist     = get_playlist($parameters['username'], $parameters['password']);
 $subscription = get_subscription($playlist['user_id']);
@@ -427,7 +436,7 @@ if (!empty($subscription) && !in_array($subscription['playlist_type'], [0, 1])) 
 /*				Route API Request		 											*/
 /*																					*/
 /************************************************************************************/
-if (!empty($playlist) && boolval($playlist['enabled']) && !empty($subscription)) {
+if (!empty($playlist) && boolval($playlist['enabled']) && !empty($subscription) && active_subscription($subscription)) {
     $response  = [];
     $offset    = !empty($parameters['offset']) ? $parameters['offset'] : 0;
     $limit     = !empty($parameters['limit'])  ? $parameters['limit']  : 1000000;

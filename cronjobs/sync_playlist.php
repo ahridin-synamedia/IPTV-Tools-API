@@ -273,8 +273,7 @@ foreach ($live_streams as $stream) {
             'sync_is_new'                => 1,
             'stream_tvg_name'            => $stream['name'],
             'stream_tvg_id'              => empty($stream['epg_channel_id']) ? "" : $stream['epg_channel_id'],
-            'stream_tvg_logo'            => empty($stream['stream_icon'])    ? "" : $stream['stream_icon'],
-            'stream_order'               => $stream['num']
+            'stream_tvg_logo'            => empty($stream['stream_icon'])    ? "" : $stream['stream_icon']
         ]);
         array_push($stream_ids, $stream['stream_id']);
     }
@@ -310,8 +309,7 @@ foreach ($movie_streams as $stream) {
             'source_container_extension' => $stream['container_extension'],
             'sync_is_new'                => 1,
             'stream_tvg_name'            => $stream['name'],
-            'stream_tvg_logo'            => $stream['stream_icon'],
-            'stream_order'               => $stream['num']
+            'stream_tvg_logo'            => $stream['stream_icon']
         ]);
         array_push($stream_ids, $stream['stream_id']);
     }
@@ -350,6 +348,7 @@ foreach ($series as $serie) {
                 'sync_is_new'                => 1,
                 'stream_tvg_name'            => $episode['title'],
                 'stream_tvg_logo'            => $serie['cover'],
+                'stream_tvg_chno'            => $stream['num'],
                 'stream_order'               => $serie['num'],
                 'serie_name'                 => extract_serie_name($serie['name']),
                 'serie_year'                 => extract_serie_year($serie['releaseDate']),

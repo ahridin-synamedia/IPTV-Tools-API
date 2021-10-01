@@ -189,6 +189,15 @@ function format_stream ($stream, $group, $plus) {
     return "{$result}\r\n";
 }
 
+function active_subscription ($subscription) {
+    if ($subscription['expire'] != null) {
+        $expire = new DateTime($subscription['expire']);
+        $now    = new DateTime();
+        return $expire < $now;
+    }
+    return true;
+}
+
 $parameters   = parse_parameters();
 $playlist     = get_playlist($parameters['username'], $parameters['password']);
 $subscription = get_subscription($playlist['user_id']);
@@ -236,7 +245,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'HEAD') {
 /*				Route API Request		 											*/
 /*																					*/
 /************************************************************************************/
-if (!empty($playlist) && boolval($playlist['enabled']) && !empty($subscription)) {
+if (!empty($playlist) && boolval($playlist['enabled']) && !empty($subscription) && active_subscription($subscription)) {
 
     // Playlist type
     $plus = !empty($parameters['type']) && strtolower($parameters['type']) === 'm3u_plus';

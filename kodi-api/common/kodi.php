@@ -61,7 +61,11 @@ class kodi {
                 }
             }
             usort($movies, function($a, $b) {
-                return strtotime($b['tmdb']['release_date']) - strtotime($a['tmdb']['release_date']);
+                if (isset($b['tmdb']['release_date']) && isset($a['tmdb']['release_date'])) {
+                    return strtotime($b['tmdb']['release_date']) - strtotime($a['tmdb']['release_date']);
+                } else {
+                    return 0;
+                }
             });
             return $movies;
         }
@@ -81,7 +85,11 @@ class kodi {
                 }
             }
             usort($movies, function($a, $b) {
-                return strtotime($b['tmdb']['release_date']) - strtotime($a['tmdb']['release_date']);
+                if (isset($b['tmdb']['release_date']) && isset($a['tmdb']['release_date'])) {
+                    return strtotime($b['tmdb']['release_date']) - strtotime($a['tmdb']['release_date']);
+                } else {
+                    return 0;
+                }
             });
             return $movies;
         }
@@ -101,7 +109,11 @@ class kodi {
                 }
             }
             usort($movies, function($a, $b) {
-                return strtotime($b['tmdb']['release_date']) - strtotime($a['tmdb']['release_date']);
+                if (isset($b['tmdb']['release_date']) && isset($a['tmdb']['release_date'])) {
+                    return strtotime($b['tmdb']['release_date']) - strtotime($a['tmdb']['release_date']);
+                } else {
+                    return 0;
+                }
             });
             return $movies;
         }
@@ -121,7 +133,11 @@ class kodi {
                 }
             }
             usort($movies, function($a, $b) {
-                return strtotime($b['tmdb']['release_date']) - strtotime($a['tmdb']['release_date']);
+                if (isset($b['tmdb']['release_date']) && isset($a['tmdb']['release_date'])) {
+                    return strtotime($b['tmdb']['release_date']) - strtotime($a['tmdb']['release_date']);
+                } else {
+                    return 0;
+                };
             });
             return $movies;
         }
@@ -141,7 +157,11 @@ class kodi {
                 }
             }
             usort($movies, function($a, $b) {
-                return strtotime($b['tmdb']['release_date']) - strtotime($a['tmdb']['release_date']);
+                if (isset($b['tmdb']['release_date']) && isset($a['tmdb']['release_date'])) {
+                    return strtotime($b['tmdb']['release_date']) - strtotime($a['tmdb']['release_date']);
+                } else {
+                    return 0;
+                }
             });
             return $movies;
         }
@@ -193,7 +213,11 @@ class kodi {
             $groups = implode(',', $groups[0]['groups']);
             $series = $sql->sql_select_array_query("SELECT `playlist_id`, `tmdb_id`, `tmdb`, `credits`, `keywords`, `videos`, (SELECT stream_tvg_logo FROM `episodes` WHERE tmdb_id = s.tmdb_id AND playlist_id = s.playlist_id AND group_id in ({$groups}) LIMIT 1) as `stream_tvg_logo`, (SELECT count(*) FROM `episodes` WHERE tmdb_id = s.tmdb_id AND playlist_id = s.playlist_id AND group_id in ({$groups})) as `episodes`, (SELECT count(DISTINCT serie_season) FROM `episodes` WHERE tmdb_id = s.tmdb_id AND playlist_id = s.playlist_id AND group_id in ({$groups})) as `seasons`, (SELECT api_password FROM playlist WHERE user_id = (SELECT user_id FROM `kodi` WHERE api_key = '{$api_key}') AND id = s.playlist_id) as 'password' FROM `series_tmdb` s WHERE user_id = (SELECT user_id FROM `kodi` WHERE api_key = '{$api_key}') AND (SELECT count(*) FROM `episodes` WHERE tmdb_id = s.tmdb_id AND playlist_id = s.playlist_id AND group_id = '{$group_id}') > 0");
             usort($series, function($a, $b) {
-                return strtotime($b['tmdb']['first_air_date']) - strtotime($a['tmdb']['first_air_date']);
+                if (isset($b['tmdb']['first_air_date']) && isset($a['tmdb']['first_air_date'])) {
+                    return strtotime($b['tmdb']['first_air_date']) - strtotime($a['tmdb']['first_air_date']);
+                } else {
+                    return 0;
+                }
             });
             return $series;
         }
@@ -208,7 +232,11 @@ class kodi {
             $groups = implode(',', $groups[0]['groups']);
             $series = $sql->sql_select_array_query("SELECT * FROM (SELECT `playlist_id`, `tmdb_id`, `tmdb`, `credits`, `keywords`, `videos`, (SELECT stream_tvg_logo FROM `episodes` WHERE tmdb_id = s.tmdb_id AND playlist_id = s.playlist_id AND group_id in ({$groups}) LIMIT 1) as `stream_tvg_logo`, (SELECT count(*) FROM `episodes` WHERE tmdb_id = s.tmdb_id AND playlist_id = s.playlist_id AND group_id in ({$groups})) as `episodes`, (SELECT count(DISTINCT serie_season) FROM `episodes` WHERE tmdb_id = s.tmdb_id AND playlist_id = s.playlist_id AND group_id in ({$groups})) as `seasons`, (SELECT api_password FROM playlist WHERE user_id = (SELECT user_id FROM `kodi` WHERE api_key = '{$api_key}') AND id = s.playlist_id) as 'password' FROM `series_tmdb` s WHERE user_id = (SELECT user_id FROM `kodi` WHERE api_key = '{$api_key}') AND tmdb_id in (SELECT tmdb_id FROM `tmdb_series_tv`) AND (SELECT count(*) FROM `episodes` WHERE tmdb_id = s.tmdb_id AND playlist_id = s.playlist_id AND group_id in ({$groups})) > 0) as series GROUP BY tmdb_id LIMIT 0, 250");
             usort($series, function($a, $b) {
-                return strtotime($b['tmdb']['first_air_date']) - strtotime($a['tmdb']['first_air_date']);
+                if (isset($b['tmdb']['first_air_date']) && isset($a['tmdb']['first_air_date'])) {
+                    return strtotime($b['tmdb']['first_air_date']) - strtotime($a['tmdb']['first_air_date']);
+                } else {
+                    return 0;
+                }
             });
             return $series;
         }
@@ -223,7 +251,11 @@ class kodi {
             $groups = implode(',', $groups[0]['groups']);
             $series = $sql->sql_select_array_query("SELECT * FROM (SELECT `playlist_id`, `tmdb_id`, `tmdb`, `credits`, `keywords`, `videos`, (SELECT stream_tvg_logo FROM `episodes` WHERE tmdb_id = s.tmdb_id AND playlist_id = s.playlist_id AND group_id in ({$groups}) LIMIT 1) as `stream_tvg_logo`, (SELECT count(*) FROM `episodes` WHERE tmdb_id = s.tmdb_id AND playlist_id = s.playlist_id AND group_id in ({$groups})) as `episodes`, (SELECT count(DISTINCT serie_season) FROM `episodes` WHERE tmdb_id = s.tmdb_id AND playlist_id = s.playlist_id AND group_id in ({$groups})) as `seasons`, (SELECT api_password FROM playlist WHERE user_id = (SELECT user_id FROM `kodi` WHERE api_key = '{$api_key}') AND id = s.playlist_id) as 'password' FROM `series_tmdb` s WHERE user_id = (SELECT user_id FROM `kodi` WHERE api_key = '{$api_key}') AND tmdb_id in (SELECT tmdb_id FROM `tmdb_series_top`) AND (SELECT count(*) FROM `episodes` WHERE tmdb_id = s.tmdb_id AND playlist_id = s.playlist_id AND group_id in ({$groups})) > 0) as series GROUP BY tmdb_id LIMIT 0, 250");
             usort($series, function($a, $b) {
-                return strtotime($b['tmdb']['first_air_date']) - strtotime($a['tmdb']['first_air_date']);
+                if (isset($b['tmdb']['first_air_date']) && isset($a['tmdb']['first_air_date'])) {
+                    return strtotime($b['tmdb']['first_air_date']) - strtotime($a['tmdb']['first_air_date']);
+                } else {
+                    return 0;
+                }
             });
             return $series;
         }
@@ -238,7 +270,11 @@ class kodi {
             $groups = implode(',', $groups[0]['groups']);
             $series = $sql->sql_select_array_query("SELECT * FROM (SELECT `playlist_id`, `tmdb_id`, `tmdb`, `credits`, `keywords`, `videos`, (SELECT stream_tvg_logo FROM `episodes` WHERE tmdb_id = s.tmdb_id AND playlist_id = s.playlist_id AND group_id in ({$groups}) LIMIT 1) as `stream_tvg_logo`, (SELECT count(*) FROM `episodes` WHERE tmdb_id = s.tmdb_id AND playlist_id = s.playlist_id AND group_id in ({$groups})) as `episodes`, (SELECT count(DISTINCT serie_season) FROM `episodes` WHERE tmdb_id = s.tmdb_id AND playlist_id = s.playlist_id AND group_id in ({$groups})) as `seasons`, (SELECT api_password FROM playlist WHERE user_id = (SELECT user_id FROM `kodi` WHERE api_key = '{$api_key}') AND id = s.playlist_id) as 'password' FROM `series_tmdb` s WHERE user_id = (SELECT user_id FROM `kodi` WHERE api_key = '{$api_key}') AND tmdb_id in (SELECT tmdb_id FROM `tmdb_series_popular`) AND (SELECT count(*) FROM `episodes` WHERE tmdb_id = s.tmdb_id AND playlist_id = s.playlist_id AND group_id in ({$groups})) > 0) as series GROUP BY tmdb_id LIMIT 0, 250");
             usort($series, function($a, $b) {
-                return strtotime($b['tmdb']['first_air_date']) - strtotime($a['tmdb']['first_air_date']);
+                if (isset($b['tmdb']['first_air_date']) && isset($a['tmdb']['first_air_date'])) {
+                    return strtotime($b['tmdb']['first_air_date']) - strtotime($a['tmdb']['first_air_date']);
+                } else {
+                    return 0;
+                }
             });
             return $series;
         }
@@ -253,7 +289,11 @@ class kodi {
             $groups = implode(',', $groups[0]['groups']);
             $series = $sql->sql_select_array_query("SELECT * FROM (SELECT `playlist_id`, `tmdb_id`, `tmdb`, `credits`, `keywords`, `videos`, (SELECT stream_tvg_logo FROM `episodes` WHERE tmdb_id = s.tmdb_id AND playlist_id = s.playlist_id AND group_id in ({$groups}) LIMIT 1) as `stream_tvg_logo`, (SELECT count(*) FROM `episodes` WHERE tmdb_id = s.tmdb_id AND playlist_id = s.playlist_id AND group_id in ({$groups})) as `episodes`, (SELECT count(DISTINCT serie_season) FROM `episodes` WHERE tmdb_id = s.tmdb_id AND playlist_id = s.playlist_id AND group_id in ({$groups})) as `seasons`, (SELECT api_password FROM playlist WHERE user_id = (SELECT user_id FROM `kodi` WHERE api_key = '{$api_key}') AND id = s.playlist_id) as 'password' FROM `series_tmdb` s WHERE user_id = (SELECT user_id FROM `kodi` WHERE api_key = '{$api_key}') AND tmdb_id in (SELECT DISTINCT tmdb_id FROM `episodes` WHERE serie_name LIKE '%{$search}%' OR stream_tvg_name LIKE '%{$search}%') AND (SELECT count(*) FROM `episodes` WHERE tmdb_id = s.tmdb_id AND playlist_id = s.playlist_id AND group_id in ({$groups})) > 0) as series GROUP BY tmdb_id LIMIT 0, 250");
             usort($series, function($a, $b) {
-                return strtotime($b['tmdb']['first_air_date']) - strtotime($a['tmdb']['first_air_date']);
+                if (isset($b['tmdb']['first_air_date']) && isset($a['tmdb']['first_air_date'])) {
+                    return strtotime($b['tmdb']['first_air_date']) - strtotime($a['tmdb']['first_air_date']);
+                } else {
+                    return 0;
+                }
             });
             return $series;
         }
@@ -268,7 +308,11 @@ class kodi {
             $groups = implode(',', $groups[0]['groups']);
             $series = $sql->sql_select_array_query("SELECT * FROM (SELECT `playlist_id`, `tmdb_id`, `tmdb`, `credits`, `keywords`, `videos`, (SELECT stream_tvg_logo FROM `episodes` WHERE tmdb_id = s.tmdb_id AND playlist_id = s.playlist_id AND group_id in ({$groups}) LIMIT 1) as `stream_tvg_logo`, (SELECT count(*) FROM `episodes` WHERE tmdb_id = s.tmdb_id AND playlist_id = s.playlist_id AND group_id in ({$groups})) as `episodes`, (SELECT count(DISTINCT serie_season) FROM `episodes` WHERE tmdb_id = s.tmdb_id AND playlist_id = s.playlist_id AND group_id in ({$groups})) as `seasons`, (SELECT api_password FROM playlist WHERE user_id = (SELECT user_id FROM `kodi` WHERE api_key = '{$api_key}') AND id = s.playlist_id) as 'password' FROM `series_tmdb` s WHERE user_id = (SELECT user_id FROM `kodi` WHERE api_key = '{$api_key}') AND tmdb_id in (SELECT DISTINCT tmdb_id FROM `episodes` WHERE sync_is_new = 1 AND user_id = (SELECT user_id FROM `kodi` WHERE api_key = '{$api_key}')) AND (SELECT count(*) FROM `episodes` WHERE tmdb_id = s.tmdb_id AND playlist_id = s.playlist_id AND group_id in ({$groups})) > 0) as series GROUP BY tmdb_id LIMIT 0, 250");
             usort($series, function($a, $b) {
-                return strtotime($b['tmdb']['first_air_date']) - strtotime($a['tmdb']['first_air_date']);
+                if (isset($b['tmdb']['first_air_date']) && isset($a['tmdb']['first_air_date'])) {
+                    return strtotime($b['tmdb']['first_air_date']) - strtotime($a['tmdb']['first_air_date']);
+                } else {
+                    return 0;
+                }
             });
             return $series;
         }
